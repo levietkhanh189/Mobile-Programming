@@ -1,116 +1,191 @@
-import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Button, Card, Avatar, ActivityIndicator, Snackbar } from 'react-native-paper';
+import { useRouter } from 'expo-router';
+import { storageService } from '../services/storage';
+import { User } from '../services/api';
 
 export default function HomeScreen() {
-  const openLinkedIn = () => {
-    Linking.openURL('https://www.linkedin.com/in/khanh-le-timo/');
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [snackbar, setSnackbar] = useState({ visible: false, message: '' });
+
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  const loadUserData = async () => {
+    try {
+      const userData = await storageService.getUser();
+      if (userData) {
+        setUser(userData);
+      } else {
+        // Nếu không có user data, chuyển về login
+        router.replace('/login');
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+      router.replace('/login');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.avatarContainer}>
-          <Text style={styles.avatarText}>👤</Text>
-        </View>
+  const handleLogout = async () => {
+    try {
+      await storageService.removeUser();
+      setSnackbar({
+        visible: true,
+        message: 'Đăng xuất thành công!',
+      });
 
-        <Text style={styles.name}>Le Viet Khanh</Text>
-        <Text style={styles.mssv}>MSSV: 21110206</Text>
+      // Chuyển về login sau 1s
+      setTimeout(() => {
+        router.replace('/login');
+      }, 1000);
+    } catch (error) {
+      console.error('Error logging out:', error);
+      setSnackbar({
+        visible: true,
+        message: 'Có lỗi xảy ra khi đăng xuất',
+      });
+    }
+  };
 
-        <View style={styles.divider} />
-
-        <Text style={styles.sectionTitle}>Giới thiệu</Text>
-        <Text style={styles.description}>
-          Xin chào! Tôi là Le Viet Khanh, sinh viên với mã số 21110206.
-          Đây là bài tập tuần 1 về React Navigation.
-        </Text>
-
-        <TouchableOpacity style={styles.linkedinButton} onPress={openLinkedIn}>
-          <Text style={styles.linkedinIcon}>🔗</Text>
-          <Text style={styles.linkedinText}>LinkedIn Profile</Text>
-        </TouchableOpacity>
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" />
       </View>
-    </View>
+    );
+  }
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <Card style={styles.card}>
+        <Card.Content>
+          <View style={styles.avatarContainer}>
+            <Avatar.Text
+              size={100}
+              label={user?.fullName?.substring(0, 2).toUpperCase() || 'U'}
+            />
+          </View>
+
+          <Text style={styles.name}>{user?.fullName || 'User'}</Text>
+          <Text style={styles.email}>{user?.email || ''}</Text>
+          {user?.phone && <Text style={styles.phone}>{user.phone}</Text>}
+
+          <View style={styles.divider} />
+
+          <Text style={styles.sectionTitle}>Thông tin tài khoản</Text>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Email:</Text>
+            <Text style={styles.infoValue}>{user?.email}</Text>
+          </View>
+          {user?.phone && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Số điện thoại:</Text>
+              <Text style={styles.infoValue}>{user.phone}</Text>
+            </View>
+          )}
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Ngày tạo:</Text>
+            <Text style={styles.infoValue}>
+              {user?.createdAt
+                ? new Date(user.createdAt).toLocaleDateString('vi-VN')
+                : ''}
+            </Text>
+          </View>
+
+          <Button
+            mode="contained"
+            onPress={handleLogout}
+            style={styles.logoutButton}
+            icon="logout"
+          >
+            Đăng xuất
+          </Button>
+        </Card.Content>
+      </Card>
+
+      {/* Snackbar */}
+      <Snackbar
+        visible={snackbar.visible}
+        onDismiss={() => setSnackbar({ ...snackbar, visible: false })}
+        duration={3000}
+      >
+        {snackbar.message}
+      </Snackbar>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: '#F5F5F5',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 30,
-    width: '100%',
-    maxWidth: 350,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  avatarContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#4A90D9',
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
   },
-  avatarText: {
-    fontSize: 50,
+  card: {
+    width: '100%',
+    maxWidth: 400,
+    elevation: 4,
+  },
+  avatarContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
   },
   name: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 5,
+    textAlign: 'center',
+    marginBottom: 8,
   },
-  mssv: {
-    fontSize: 18,
+  email: {
+    fontSize: 16,
     color: '#666666',
-    marginBottom: 20,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  phone: {
+    fontSize: 14,
+    color: '#888888',
+    textAlign: 'center',
+    marginBottom: 16,
   },
   divider: {
-    width: '100%',
     height: 1,
     backgroundColor: '#E0E0E0',
-    marginVertical: 20,
+    marginVertical: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333333',
-    marginBottom: 10,
-    alignSelf: 'flex-start',
+    marginBottom: 12,
   },
-  description: {
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  infoLabel: {
     fontSize: 14,
     color: '#666666',
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 20,
+    fontWeight: '500',
   },
-  linkedinButton: {
-    flexDirection: 'row',
-    backgroundColor: '#0077B5',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 25,
-    alignItems: 'center',
+  infoValue: {
+    fontSize: 14,
+    color: '#333333',
   },
-  linkedinIcon: {
-    fontSize: 18,
-    marginRight: 8,
-  },
-  linkedinText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+  logoutButton: {
+    marginTop: 24,
   },
 });

@@ -1,50 +1,144 @@
-# Welcome to your Expo app 👋
+# Mobile Programming - Authentication App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Ứng dụng React Native với đầy đủ tính năng authentication: Register (có/không OTP), Login (không JWT), Forgot Password (có OTP).
 
-## Get started
+## 🚀 Quick Start
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+### 1. Chạy Backend API
 ```bash
-npm run reset-project
+cd backend
+npm install
+npm run dev
+```
+Server: `http://localhost:3000`
+
+### 2. Chạy Mobile App
+```bash
+npm install
+npm start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 📱 Tính năng chính
 
-## Learn more
+### ✅ Đăng ký đơn giản (Register Simple - No OTP)
+- Đăng ký nhanh chóng, không cần xác thực
+- Phù hợp cho testing và development
+- Route: `/register-simple`
+- API: `POST /api/auth/register-simple`
 
-To learn more about developing your project with Expo, look at the following resources:
+### 🔐 Đăng ký với OTP (Register with OTP)
+- Bảo mật cao với xác thực OTP qua email
+- OTP hiệu lực 5 phút
+- Route: `/register`
+- API:
+  - `POST /api/auth/send-otp`
+  - `POST /api/auth/verify-otp`
+  - `POST /api/auth/register`
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### 🔑 Đăng nhập (Login - No JWT)
+- Không sử dụng JWT (theo yêu cầu)
+- Lưu user info trong AsyncStorage
+- Route: `/login`
+- API: `POST /api/auth/login`
 
-## Join the community
+### 🔄 Quên mật khẩu (Forgot Password with OTP)
+- Xác thực OTP trước khi đổi mật khẩu
+- Route: `/forgot-password`
+- API:
+  - `POST /api/auth/send-otp`
+  - `POST /api/auth/verify-otp`
+  - `POST /api/auth/reset-password`
 
-Join our community of developers creating universal apps.
+## 🛠️ Tech Stack
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Backend
+- Node.js + Express.js
+- CORS, Body-parser
+- In-memory storage
+
+### Frontend
+- React Native (Expo)
+- React Native Paper (Material Design 3)
+- Expo Router (File-based routing)
+- AsyncStorage
+- Axios
+- TypeScript
+
+## 📖 Chi tiết
+
+Xem file `AUTHENTICATION_GUIDE.md` để biết:
+- Hướng dẫn cài đặt chi tiết
+- API documentation đầy đủ
+- Test flow từng tính năng
+- Troubleshooting
+
+## 🎯 Test nhanh
+
+### Đăng ký đơn giản
+1. Mở app → Login → "Đăng ký đơn giản"
+2. Nhập thông tin → "Đăng ký"
+3. ✅ Done!
+
+### Đăng ký với OTP
+1. Mở app → Login → "Đăng ký với OTP"
+2. Nhập thông tin → "Gửi mã OTP"
+3. **Xem OTP trong console backend**
+4. Nhập OTP → Tự động đăng ký
+5. ✅ Done!
+
+### Login
+1. Nhập email/password
+2. "Đăng nhập"
+3. ✅ Done!
+
+## ⚠️ Lưu ý
+
+- **OTP**: Hiển thị trong console backend (chưa tích hợp email thật)
+- **JWT**: Không sử dụng (theo yêu cầu)
+- **Password**: Chưa hash (production nên dùng bcrypt)
+- **Storage**: In-memory (production nên dùng database)
+- **API URL**: Khi chạy trên thiết bị thật, đổi `localhost` thành IP máy tính trong `services/api.ts`
+
+## 📂 Cấu trúc dự án
+
+```
+Mobile-Programming/
+├── backend/                    # Backend API
+│   ├── server.js
+│   └── README.md
+│
+├── app/                        # Routes (Expo Router)
+│   ├── login.tsx
+│   ├── register.tsx            # Với OTP
+│   ├── register-simple.tsx     # Không OTP
+│   ├── forgot-password.tsx
+│   └── home.tsx
+│
+├── screens/auth/               # Screen components
+│   ├── LoginScreen.tsx
+│   ├── RegisterScreen.tsx
+│   ├── RegisterSimpleScreen.tsx
+│   └── ForgotPasswordScreen.tsx
+│
+├── services/                   # API & Storage
+│   ├── api.ts
+│   └── storage.ts
+│
+└── components/auth/            # Components
+    └── OTPInput.tsx
+```
+
+## 🌟 Highlights
+
+✅ 2 cách đăng ký: Đơn giản (nhanh) và OTP (bảo mật)
+✅ Login không dùng JWT
+✅ OTP cho Register và Forgot Password
+✅ UI đẹp với Material Design 3
+✅ TypeScript
+✅ Validation đầy đủ
+✅ Error handling tốt
+✅ Responsive design
+
+---
+
+**Chúc bạn code vui vẻ!** 🎉

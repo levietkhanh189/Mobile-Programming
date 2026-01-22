@@ -1,26 +1,54 @@
-import { useEffect } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { ActivityIndicator } from 'react-native-paper';
+import { storageService } from '../services/storage';
 
 export default function IntroScreen() {
   const router = useRouter();
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.replace('/home');
-    }, 10000);
-
-    return () => clearTimeout(timer);
+    checkAuthStatus();
   }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      // Kiểm tra xem user đã đăng nhập chưa
+      const user = await storageService.getUser();
+
+      // Delay một chút để hiển thị splash screen
+      setTimeout(() => {
+        if (user) {
+          // Đã đăng nhập, chuyển đến home
+          router.replace('/home');
+        } else {
+          // Chưa đăng nhập, chuyển đến login
+          router.replace('/login');
+        }
+      }, 1500);
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+      // Nếu có lỗi, chuyển đến login
+      router.replace('/login');
+    } finally {
+      setIsChecking(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
         <Text style={styles.logoText}>🎓</Text>
-        <Text style={styles.title}>BÀI TẬP TUẦN 1</Text>
-        <Text style={styles.subtitle}>React Navigation Demo</Text>
+        <Text style={styles.title}>Mobile Programming</Text>
+        <Text style={styles.subtitle}>Authentication App</Text>
       </View>
-      <Text style={styles.loadingText}>Đang tải...</Text>
+      {isChecking && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+          <Text style={styles.loadingText}>Đang tải...</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -28,7 +56,7 @@ export default function IntroScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#4A90D9',
+    backgroundColor: '#6200EE',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -50,10 +78,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#E0E0E0',
   },
+  loadingContainer: {
+    position: 'absolute',
+    bottom: 100,
+    alignItems: 'center',
+  },
   loadingText: {
     fontSize: 16,
     color: '#FFFFFF',
-    position: 'absolute',
-    bottom: 100,
+    marginTop: 16,
   },
 });
