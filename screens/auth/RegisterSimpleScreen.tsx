@@ -1,79 +1,40 @@
 import React, { useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import {
-  TextInput,
-  Button,
-  Text,
-  Card,
-  Snackbar,
-  HelperText,
-  ActivityIndicator,
-} from 'react-native-paper';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { Snackbar } from 'react-native-paper';
+import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { GradientBackground } from '../../components/ui/gradient-background';
+import { GlassCard } from '../../components/ui/glass-card';
+import { GlassTextInput } from '../../components/ui/glass-text-input';
+import { AnimatedButton } from '../../components/ui/animated-button';
 import { authService } from '../../services/api';
 import { storageService } from '../../services/storage';
+import { useRegisterForm } from '../../hooks/use-register-form';
 
 const RegisterSimpleScreen = () => {
   const router = useRouter();
-
-  // Form states
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    fullName,
+    setFullName,
+    phone,
+    setPhone,
+    showPassword,
+    errors,
+    validateForm,
+  } = useRegisterForm();
 
   // UI states
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [snackbar, setSnackbar] = useState({ visible: false, message: '' });
 
-  // Validation states
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
-  // Validate email
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  // Validate form
-  const validateForm = () => {
-    const newErrors: { [key: string]: string } = {};
-
-    if (!email) {
-      newErrors.email = 'Email là bắt buộc';
-    } else if (!validateEmail(email)) {
-      newErrors.email = 'Email không hợp lệ';
-    }
-
-    if (!fullName) {
-      newErrors.fullName = 'Họ tên là bắt buộc';
-    }
-
-    if (!password) {
-      newErrors.password = 'Mật khẩu là bắt buộc';
-    } else if (password.length < 6) {
-      newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
-    }
-
-    if (!confirmPassword) {
-      newErrors.confirmPassword = 'Xác nhận mật khẩu là bắt buộc';
-    } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Mật khẩu không khớp';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Đăng ký
+  // Direct register (no OTP)
   const handleRegister = async () => {
     if (!validateForm()) {
       return;
@@ -81,14 +42,13 @@ const RegisterSimpleScreen = () => {
 
     setLoading(true);
     try {
-      const response = await authService.registerSimple({
+      const response = await authService.register({
         email,
         password,
         fullName,
         phone,
       });
 
-      // Lưu thông tin user và token vào Realm
       if (response.user && response.token) {
         await storageService.saveAuthData(response.user, response.token);
       }
@@ -98,7 +58,6 @@ const RegisterSimpleScreen = () => {
         message: 'Đăng ký thành công!',
       });
 
-      // Chuyển về màn hình home sau 1.5s
       setTimeout(() => {
         router.replace('/home');
       }, 1500);
@@ -113,183 +72,138 @@ const RegisterSimpleScreen = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Card style={styles.card}>
-          <Card.Content>
-            <Text variant="headlineMedium" style={styles.title}>
-              Đăng ký đơn giản
+    <GradientBackground>
+      <StatusBar style="light" />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        className="flex-1"
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+          className="px-6"
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Header */}
+          <View className="items-center mb-8">
+            <Text
+              style={{ fontFamily: 'Poppins_700Bold' }}
+              className="text-4xl text-white mb-2"
+            >
+              Đăng ký nhanh
             </Text>
-            <Text variant="bodySmall" style={styles.subtitle}>
+            <Text
+              style={{ fontFamily: 'OpenSans_400Regular' }}
+              className="text-base text-white/70"
+            >
               Không cần xác thực OTP
             </Text>
+          </View>
 
-            {/* Email */}
-            <TextInput
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              mode="outlined"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              style={styles.input}
-              error={!!errors.email}
-              disabled={loading}
-            />
-            <HelperText type="error" visible={!!errors.email}>
-              {errors.email}
-            </HelperText>
+          {/* Glass Form Card */}
+          <Animated.View entering={FadeInDown.duration(600).delay(200)}>
+            <GlassCard>
+              <GlassTextInput
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                error={errors.email}
+                disabled={loading}
+                icon="email-outline"
+              />
 
-            {/* Họ tên */}
-            <TextInput
-              label="Họ và tên"
-              value={fullName}
-              onChangeText={setFullName}
-              mode="outlined"
-              style={styles.input}
-              error={!!errors.fullName}
-              disabled={loading}
-            />
-            <HelperText type="error" visible={!!errors.fullName}>
-              {errors.fullName}
-            </HelperText>
+              <GlassTextInput
+                label="Họ và tên"
+                value={fullName}
+                onChangeText={setFullName}
+                error={errors.fullName}
+                disabled={loading}
+                icon="account-outline"
+              />
 
-            {/* Số điện thoại */}
-            <TextInput
-              label="Số điện thoại (tùy chọn)"
-              value={phone}
-              onChangeText={setPhone}
-              mode="outlined"
-              keyboardType="phone-pad"
-              style={styles.input}
-              disabled={loading}
-            />
+              <GlassTextInput
+                label="Số điện thoại (tùy chọn)"
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                disabled={loading}
+                icon="phone-outline"
+              />
 
-            {/* Mật khẩu */}
-            <TextInput
-              label="Mật khẩu"
-              value={password}
-              onChangeText={setPassword}
-              mode="outlined"
-              secureTextEntry={!showPassword}
-              right={
-                <TextInput.Icon
-                  icon={showPassword ? 'eye-off' : 'eye'}
-                  onPress={() => setShowPassword(!showPassword)}
+              <GlassTextInput
+                label="Mật khẩu"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                showToggle
+                error={errors.password}
+                disabled={loading}
+                icon="lock-outline"
+              />
+
+              <GlassTextInput
+                label="Xác nhận mật khẩu"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showPassword}
+                error={errors.confirmPassword}
+                disabled={loading}
+                icon="lock-check-outline"
+              />
+
+              <AnimatedButton
+                variant="cta"
+                title="Đăng ký"
+                onPress={handleRegister}
+                loading={loading}
+                disabled={loading}
+                className="mt-4"
+              />
+
+              {/* Divider */}
+              <View className="flex-row items-center my-6">
+                <View className="flex-1 h-[1px] bg-white/20" />
+                <Text
+                  style={{ fontFamily: 'OpenSans_400Regular' }}
+                  className="text-white/50 mx-4"
+                >
+                  hoặc
+                </Text>
+                <View className="flex-1 h-[1px] bg-white/20" />
+              </View>
+
+              {/* Footer Links */}
+              <View className="gap-3">
+                <AnimatedButton
+                  variant="outline"
+                  title="Đăng ký với OTP"
+                  onPress={() => router.push('/register')}
+                  disabled={loading}
                 />
-              }
-              style={styles.input}
-              error={!!errors.password}
-              disabled={loading}
-            />
-            <HelperText type="error" visible={!!errors.password}>
-              {errors.password}
-            </HelperText>
 
-            {/* Xác nhận mật khẩu */}
-            <TextInput
-              label="Xác nhận mật khẩu"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              mode="outlined"
-              secureTextEntry={!showPassword}
-              style={styles.input}
-              error={!!errors.confirmPassword}
-              disabled={loading}
-            />
-            <HelperText type="error" visible={!!errors.confirmPassword}>
-              {errors.confirmPassword}
-            </HelperText>
+                <AnimatedButton
+                  variant="text"
+                  title="Đã có tài khoản? Đăng nhập"
+                  onPress={() => router.push('/login')}
+                  disabled={loading}
+                />
+              </View>
+            </GlassCard>
+          </Animated.View>
+        </ScrollView>
 
-            {/* Button đăng ký */}
-            <Button
-              mode="contained"
-              onPress={handleRegister}
-              style={styles.button}
-              disabled={loading}
-            >
-              {loading ? <ActivityIndicator color="#fff" /> : 'Đăng ký'}
-            </Button>
-
-            {/* Link đăng ký với OTP */}
-            <View style={styles.footer}>
-              <Text variant="bodySmall">Muốn bảo mật hơn? </Text>
-              <Button
-                mode="text"
-                onPress={() => router.push('/register')}
-                compact
-                disabled={loading}
-              >
-                Đăng ký với OTP
-              </Button>
-            </View>
-
-            {/* Link đăng nhập */}
-            <View style={styles.footer}>
-              <Text variant="bodySmall">Đã có tài khoản? </Text>
-              <Button
-                mode="text"
-                onPress={() => router.push('/login')}
-                compact
-                disabled={loading}
-              >
-                Đăng nhập
-              </Button>
-            </View>
-          </Card.Content>
-        </Card>
-      </ScrollView>
-
-      {/* Snackbar */}
-      <Snackbar
-        visible={snackbar.visible}
-        onDismiss={() => setSnackbar({ ...snackbar, visible: false })}
-        duration={3000}
-      >
-        {snackbar.message}
-      </Snackbar>
-    </KeyboardAvoidingView>
+        {/* Snackbar */}
+        <Snackbar
+          visible={snackbar.visible}
+          onDismiss={() => setSnackbar({ ...snackbar, visible: false })}
+          duration={3000}
+        >
+          {snackbar.message}
+        </Snackbar>
+      </KeyboardAvoidingView>
+    </GradientBackground>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 16,
-  },
-  card: {
-    elevation: 4,
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: 8,
-    fontWeight: 'bold',
-  },
-  subtitle: {
-    textAlign: 'center',
-    marginBottom: 24,
-    color: '#666',
-  },
-  input: {
-    marginBottom: 4,
-  },
-  button: {
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-});
 
 export default RegisterSimpleScreen;

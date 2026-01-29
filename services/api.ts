@@ -2,9 +2,11 @@ import axios from 'axios';
 import { storageService } from './storage';
 
 // Cấu hình base URL
-// Trong development: http://localhost:3000
-// Trong production: thay bằng URL server thật
-const API_BASE_URL = 'http://localhost:3000/api';
+// Production Railway API
+const API_BASE_URL = 'https://backend-production-9c18.up.railway.app/api';
+
+// Trong development local, uncomment dòng dưới:
+// const API_BASE_URL = 'http://localhost:3000/api';
 
 // Tạo axios instance
 const api = axios.create({

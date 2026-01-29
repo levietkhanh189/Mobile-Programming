@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, TextInput, StyleSheet } from 'react-native';
-import { useTheme } from 'react-native-paper';
+import { GLASS_COLORS } from '../../constants/theme-colors';
 
 interface OTPInputProps {
   length?: number;
@@ -13,7 +13,6 @@ const OTPInput: React.FC<OTPInputProps> = ({
   onComplete,
   value = ''
 }) => {
-  const theme = useTheme();
   const [otp, setOtp] = useState<string[]>(Array(length).fill(''));
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
@@ -66,9 +65,9 @@ const OTPInput: React.FC<OTPInputProps> = ({
           style={[
             styles.input,
             {
-              borderColor: digit ? theme.colors.primary : theme.colors.outline,
-              backgroundColor: theme.colors.surface,
-              color: theme.colors.onSurface,
+              borderColor: digit ? GLASS_COLORS.cta : 'rgba(255, 255, 255, 0.5)',
+              backgroundColor: 'rgba(255, 255, 255, 0.15)',
+              color: GLASS_COLORS.white,
             },
           ]}
           value={digit}
@@ -78,6 +77,7 @@ const OTPInput: React.FC<OTPInputProps> = ({
           maxLength={1}
           autoFocus={index === 0}
           selectTextOnFocus
+          placeholderTextColor="rgba(255, 255, 255, 0.4)"
         />
       ))}
     </View>
@@ -89,15 +89,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: 20,
+    paddingHorizontal: 4,
   },
   input: {
-    width: 45,
-    height: 50,
+    width: 48,
+    height: 56,
     borderWidth: 2,
-    borderRadius: 8,
+    borderRadius: 12,
     textAlign: 'center',
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
+    fontFamily: 'Poppins_600SemiBold',
   },
 });
 

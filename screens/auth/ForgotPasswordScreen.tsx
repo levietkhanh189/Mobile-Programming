@@ -1,372 +1,237 @@
-import React, { useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import {
-  TextInput,
-  Button,
-  Text,
-  Card,
-  Snackbar,
-  HelperText,
-  ActivityIndicator,
-} from 'react-native-paper';
+import React from 'react';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { Snackbar } from 'react-native-paper';
+import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import Animated, { FadeInRight, FadeInLeft } from 'react-native-reanimated';
+import { GradientBackground } from '../../components/ui/gradient-background';
+import { GlassCard } from '../../components/ui/glass-card';
+import { GlassTextInput } from '../../components/ui/glass-text-input';
+import { AnimatedButton } from '../../components/ui/animated-button';
+import { StepIndicator } from '../../components/ui/step-indicator';
 import OTPInput from '../../components/auth/OTPInput';
-import { authService } from '../../services/api';
+import { useForgotPasswordForm } from '../../hooks/use-forgot-password-form';
 
 const ForgotPasswordScreen = () => {
   const router = useRouter();
+  const {
+    email,
+    setEmail,
+    newPassword,
+    setNewPassword,
+    confirmPassword,
+    setConfirmPassword,
+    otp,
+    step,
+    loading,
+    showPassword,
+    snackbar,
+    setSnackbar,
+    errors,
+    handleSendOTP,
+    handleVerifyOTP,
+    handleResetPassword,
+    goBackToEmail,
+    currentStepIndex,
+  } = useForgotPasswordForm();
 
-  // Form states
-  const [email, setEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-
-  // OTP states
-  const [step, setStep] = useState<'email' | 'otp' | 'password'>('email');
-  const [otp, setOtp] = useState('');
-
-  // UI states
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [snackbar, setSnackbar] = useState({ visible: false, message: '' });
-
-  // Validation states
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
-  // Validate email
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  // Gửi OTP
-  const handleSendOTP = async () => {
-    if (!email) {
-      setErrors({ email: 'Email là bắt buộc' });
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      setErrors({ email: 'Email không hợp lệ' });
-      return;
-    }
-
-    setErrors({});
-    setLoading(true);
-
-    try {
-      await authService.sendOTP({
-        email,
-        purpose: 'forgot-password',
-      });
-
-      setStep('otp');
-      setSnackbar({
-        visible: true,
-        message: 'OTP đã được gửi đến email của bạn',
-      });
-    } catch (error: any) {
-      setSnackbar({
-        visible: true,
-        message: error.message || 'Có lỗi xảy ra',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Xác thực OTP
-  const handleVerifyOTP = async (otpCode: string) => {
-    setLoading(true);
-    try {
-      await authService.verifyOTP({
-        email,
-        otp: otpCode,
-      });
-
-      setStep('password');
-      setSnackbar({
-        visible: true,
-        message: 'Xác thực OTP thành công',
-      });
-    } catch (error: any) {
-      setSnackbar({
-        visible: true,
-        message: error.message || 'OTP không chính xác',
-      });
-      setOtp('');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Đặt lại mật khẩu
-  const handleResetPassword = async () => {
-    const newErrors: { [key: string]: string } = {};
-
-    if (!newPassword) {
-      newErrors.newPassword = 'Mật khẩu mới là bắt buộc';
-    } else if (newPassword.length < 6) {
-      newErrors.newPassword = 'Mật khẩu phải có ít nhất 6 ký tự';
-    }
-
-    if (!confirmPassword) {
-      newErrors.confirmPassword = 'Xác nhận mật khẩu là bắt buộc';
-    } else if (newPassword !== confirmPassword) {
-      newErrors.confirmPassword = 'Mật khẩu không khớp';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    setErrors({});
-    setLoading(true);
-
-    try {
-      await authService.resetPassword({
-        email,
-        newPassword,
-      });
-
-      setSnackbar({
-        visible: true,
-        message: 'Đặt lại mật khẩu thành công!',
-      });
-
-      // Chuyển về màn hình login sau 1.5s
-      setTimeout(() => {
-        router.replace('/login');
-      }, 1500);
-    } catch (error: any) {
-      setSnackbar({
-        visible: true,
-        message: error.message || 'Đặt lại mật khẩu thất bại',
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handlePasswordResetSuccess = async () => {
+    await handleResetPassword();
+    // Navigate to login after success
+    setTimeout(() => {
+      router.push('/login');
+    }, 2000);
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Card style={styles.card}>
-          <Card.Content>
-            <Text variant="headlineMedium" style={styles.title}>
-              Quên mật khẩu
+    <GradientBackground>
+      <StatusBar style="light" />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        className="flex-1"
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+          className="px-6"
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Header */}
+          <View className="items-center mb-6">
+            <Text
+              style={{ fontFamily: 'Poppins_700Bold' }}
+              className="text-4xl text-white mb-2"
+            >
+              Đặt lại mật khẩu
             </Text>
+            <Text
+              style={{ fontFamily: 'OpenSans_400Regular' }}
+              className="text-base text-white/70"
+            >
+              Làm theo 3 bước đơn giản
+            </Text>
+          </View>
 
+          {/* Step Indicator */}
+          <StepIndicator
+            totalSteps={3}
+            currentStep={currentStepIndex}
+            labels={['Email', 'Xác thực', 'Mật khẩu mới']}
+          />
+
+          {/* Glass Form Card */}
+          <GlassCard>
+            {/* Step 1: Email */}
             {step === 'email' && (
-              <>
-                <Text variant="bodyMedium" style={styles.description}>
-                  Nhập email của bạn để nhận mã OTP
+              <Animated.View entering={FadeInRight.duration(400)}>
+                <Text
+                  style={{ fontFamily: 'OpenSans_400Regular' }}
+                  className="text-white/90 text-center mb-6"
+                >
+                  Nhập email để nhận mã OTP xác thực
                 </Text>
 
-                {/* Email */}
-                <TextInput
+                <GlassTextInput
                   label="Email"
                   value={email}
                   onChangeText={setEmail}
-                  mode="outlined"
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  style={styles.input}
-                  error={!!errors.email}
+                  error={errors.email}
                   disabled={loading}
+                  icon="email-outline"
                 />
-                <HelperText type="error" visible={!!errors.email}>
-                  {errors.email}
-                </HelperText>
 
-                {/* Button gửi OTP */}
-                <Button
-                  mode="contained"
+                <AnimatedButton
+                  variant="cta"
+                  title="Gửi mã OTP"
                   onPress={handleSendOTP}
-                  style={styles.button}
+                  loading={loading}
                   disabled={loading}
-                >
-                  {loading ? <ActivityIndicator color="#fff" /> : 'Gửi mã OTP'}
-                </Button>
-              </>
+                  className="mt-4"
+                />
+              </Animated.View>
             )}
 
+            {/* Step 2: OTP Verification */}
             {step === 'otp' && (
-              <>
-                {/* OTP Input */}
-                <Text variant="bodyMedium" style={styles.otpText}>
-                  Nhập mã OTP đã được gửi đến email: {email}
+              <Animated.View entering={FadeInLeft.duration(400)}>
+                <Text
+                  style={{ fontFamily: 'OpenSans_400Regular' }}
+                  className="text-white/90 text-center mb-4"
+                >
+                  Nhập mã OTP đã được gửi đến email:
+                </Text>
+                <Text
+                  style={{ fontFamily: 'Poppins_600SemiBold' }}
+                  className="text-white text-center mb-6"
+                >
+                  {email}
                 </Text>
 
-                <OTPInput
-                  length={6}
-                  onComplete={handleVerifyOTP}
-                  value={otp}
-                />
+                <OTPInput length={6} onComplete={handleVerifyOTP} value={otp} />
 
-                {loading && <ActivityIndicator style={styles.loader} />}
-
-                {/* Gửi lại OTP */}
-                <Button
-                  mode="text"
-                  onPress={handleSendOTP}
-                  disabled={loading}
-                  style={styles.resendButton}
-                >
-                  Gửi lại mã OTP
-                </Button>
-
-                {/* Quay lại */}
-                <Button
-                  mode="text"
-                  onPress={() => setStep('email')}
-                  disabled={loading}
-                >
-                  Quay lại
-                </Button>
-              </>
+                <View className="flex-row gap-3 mt-4">
+                  <View className="flex-1">
+                    <AnimatedButton
+                      variant="text"
+                      title="Quay lại"
+                      onPress={goBackToEmail}
+                      disabled={loading}
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <AnimatedButton
+                      variant="text"
+                      title="Gửi lại OTP"
+                      onPress={handleSendOTP}
+                      disabled={loading}
+                    />
+                  </View>
+                </View>
+              </Animated.View>
             )}
 
+            {/* Step 3: New Password */}
             {step === 'password' && (
-              <>
-                <Text variant="bodyMedium" style={styles.description}>
+              <Animated.View entering={FadeInRight.duration(400)}>
+                <Text
+                  style={{ fontFamily: 'OpenSans_400Regular' }}
+                  className="text-white/90 text-center mb-6"
+                >
                   Nhập mật khẩu mới của bạn
                 </Text>
 
-                {/* Mật khẩu mới */}
-                <TextInput
+                <GlassTextInput
                   label="Mật khẩu mới"
                   value={newPassword}
                   onChangeText={setNewPassword}
-                  mode="outlined"
-                  secureTextEntry={!showPassword}
-                  right={
-                    <TextInput.Icon
-                      icon={showPassword ? 'eye-off' : 'eye'}
-                      onPress={() => setShowPassword(!showPassword)}
-                    />
-                  }
-                  style={styles.input}
-                  error={!!errors.newPassword}
+                  secureTextEntry
+                  showToggle
+                  error={errors.newPassword}
                   disabled={loading}
+                  icon="lock-outline"
                 />
-                <HelperText type="error" visible={!!errors.newPassword}>
-                  {errors.newPassword}
-                </HelperText>
 
-                {/* Xác nhận mật khẩu */}
-                <TextInput
-                  label="Xác nhận mật khẩu mới"
+                <GlassTextInput
+                  label="Xác nhận mật khẩu"
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  mode="outlined"
                   secureTextEntry={!showPassword}
-                  style={styles.input}
-                  error={!!errors.confirmPassword}
+                  error={errors.confirmPassword}
                   disabled={loading}
+                  icon="lock-check-outline"
                 />
-                <HelperText type="error" visible={!!errors.confirmPassword}>
-                  {errors.confirmPassword}
-                </HelperText>
 
-                {/* Button đặt lại mật khẩu */}
-                <Button
-                  mode="contained"
-                  onPress={handleResetPassword}
-                  style={styles.button}
+                <AnimatedButton
+                  variant="cta"
+                  title="Đặt lại mật khẩu"
+                  onPress={handlePasswordResetSuccess}
+                  loading={loading}
                   disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    'Đặt lại mật khẩu'
-                  )}
-                </Button>
-              </>
+                  className="mt-4"
+                />
+              </Animated.View>
             )}
 
-            {/* Link đăng nhập */}
-            <View style={styles.footer}>
-              <Text>Nhớ mật khẩu? </Text>
-              <Button
-                mode="text"
-                onPress={() => router.push('/login')}
-                compact
-                disabled={loading}
+            {/* Divider */}
+            <View className="flex-row items-center my-6">
+              <View className="flex-1 h-[1px] bg-white/20" />
+              <Text
+                style={{ fontFamily: 'OpenSans_400Regular' }}
+                className="text-white/50 mx-4"
               >
-                Đăng nhập
-              </Button>
+                hoặc
+              </Text>
+              <View className="flex-1 h-[1px] bg-white/20" />
             </View>
-          </Card.Content>
-        </Card>
-      </ScrollView>
 
-      {/* Snackbar */}
-      <Snackbar
-        visible={snackbar.visible}
-        onDismiss={() => setSnackbar({ ...snackbar, visible: false })}
-        duration={3000}
-      >
-        {snackbar.message}
-      </Snackbar>
-    </KeyboardAvoidingView>
+            {/* Footer Link */}
+            <Text
+              style={{ fontFamily: 'OpenSans_400Regular' }}
+              className="text-white/70 text-center mb-3"
+            >
+              Nhớ mật khẩu rồi?
+            </Text>
+            <AnimatedButton
+              variant="outline"
+              title="Đăng nhập"
+              onPress={() => router.push('/login')}
+              disabled={loading}
+            />
+          </GlassCard>
+        </ScrollView>
+
+        {/* Snackbar */}
+        <Snackbar
+          visible={snackbar.visible}
+          onDismiss={() => setSnackbar({ ...snackbar, visible: false })}
+          duration={3000}
+        >
+          {snackbar.message}
+        </Snackbar>
+      </KeyboardAvoidingView>
+    </GradientBackground>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 16,
-  },
-  card: {
-    elevation: 4,
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: 24,
-    fontWeight: 'bold',
-  },
-  description: {
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  input: {
-    marginBottom: 4,
-  },
-  button: {
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  otpText: {
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  loader: {
-    marginVertical: 16,
-  },
-  resendButton: {
-    marginTop: 8,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 16,
-  },
-});
 
 export default ForgotPasswordScreen;

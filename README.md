@@ -38,7 +38,7 @@ npm start
 ### 🔑 Đăng nhập (Login with JWT)
 - Sử dụng JWT authentication
 - Token tự động gửi trong headers
-- Lưu user info và token trong Realm storage
+- Lưu user info và token trong AsyncStorage
 - Route: `/login`
 - API: `POST /api/auth/login`
 
@@ -64,8 +64,8 @@ npm start
 - React Native (Expo)
 - React Native Paper (Material Design 3)
 - Expo Router (File-based routing)
-- AsyncStorage
-- Axios
+- AsyncStorage (persistent storage)
+- Axios (API client)
 - TypeScript
 
 ## 📖 Chi tiết
