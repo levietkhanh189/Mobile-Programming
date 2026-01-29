@@ -146,9 +146,9 @@ const RegisterScreen = () => {
         phone,
       });
 
-      // Lưu thông tin user vào AsyncStorage
-      if (response.user) {
-        await storageService.saveUser(response.user);
+      // Lưu thông tin user và token vào Realm
+      if (response.user && response.token) {
+        await storageService.saveAuthData(response.user, response.token);
       }
 
       setSnackbar({

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Button, Card, Avatar, ActivityIndicator, Snackbar } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { storageService } from '../services/storage';
-import { User } from '../services/api';
+import { authService, User } from '../services/api';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -17,15 +17,39 @@ export default function HomeScreen() {
 
   const loadUserData = async () => {
     try {
-      const userData = await storageService.getUser();
-      if (userData) {
-        setUser(userData);
-      } else {
-        // Nếu không có user data, chuyển về login
+      // Kiểm tra token và user trong storage
+      const token = await storageService.getToken();
+      const cachedUser = await storageService.getUser();
+
+      if (!token || !cachedUser) {
+        // Nếu không có token hoặc user, chuyển về login
         router.replace('/login');
+        return;
+      }
+
+      // Hiển thị cached user trước để UX tốt hơn
+      setUser(cachedUser);
+
+      // Fetch user mới nhất từ API bằng JWT
+      try {
+        const response = await authService.getUserProfile();
+        if (response.user) {
+          setUser(response.user);
+          // Cập nhật cache
+          await storageService.saveUser(response.user);
+        }
+      } catch (apiError: any) {
+        console.error('Error fetching user profile from API:', apiError);
+        // Nếu API fail nhưng có cached user thì vẫn hiển thị cached user
+        // Chỉ redirect về login nếu là 401/403 (token invalid)
+        if (apiError.response?.status === 401 || apiError.response?.status === 403) {
+          await storageService.clearAuthData();
+          router.replace('/login');
+        }
       }
     } catch (error) {
       console.error('Error loading user data:', error);
+      await storageService.clearAuthData();
       router.replace('/login');
     } finally {
       setLoading(false);
@@ -34,7 +58,7 @@ export default function HomeScreen() {
 
   const handleLogout = async () => {
     try {
-      await storageService.removeUser();
+      await storageService.clearAuthData();
       setSnackbar({
         visible: true,
         message: 'Đăng xuất thành công!',

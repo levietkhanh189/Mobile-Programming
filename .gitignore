@@ -182,3 +182,6 @@ fix_*.patch
 
 expo-env.d.ts
 # @end expo-cli
+AGENTS.md
+CLAUDE.md
+Mobile-Programming.code-workspace

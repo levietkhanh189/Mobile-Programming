@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { storageService } from './storage';
 
 // Cấu hình base URL
 // Trong development: http://localhost:3000
@@ -13,6 +14,42 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Request interceptor: Tự động thêm JWT token vào headers
+api.interceptors.request.use(
+  async (config) => {
+    try {
+      const token = await storageService.getToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.error('Error getting token for request:', error);
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor: Xử lý 401 errors (token hết hạn/không hợp lệ)
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Token hết hạn hoặc không hợp lệ -> xóa auth data
+      try {
+        await storageService.clearAuthData();
+        // Có thể emit event để redirect về login screen
+        // EventEmitter.emit('unauthorized');
+      } catch (err) {
+        console.error('Error clearing auth data:', err);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Types
 export interface SendOTPRequest {
@@ -55,8 +92,10 @@ export interface ApiResponse<T = any> {
   message: string;
   data?: T;
   user?: User;
+  token?: string;
   expiresIn?: number;
   purpose?: string;
+  remainingTime?: number;
 }
 
 // API Service
@@ -125,6 +164,16 @@ export const authService = {
   healthCheck: async (): Promise<ApiResponse> => {
     try {
       const response = await api.get('/health');
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi kết nối server' };
+    }
+  },
+
+  // Lấy thông tin user (yêu cầu JWT token)
+  getUserProfile: async (): Promise<ApiResponse<User>> => {
+    try {
+      const response = await api.get('/user/profile');
       return response.data;
     } catch (error: any) {
       throw error.response?.data || { success: false, message: 'Lỗi kết nối server' };

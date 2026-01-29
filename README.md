@@ -1,12 +1,12 @@
 # Mobile Programming - Authentication App
 
-Ứng dụng React Native với đầy đủ tính năng authentication: Register (có/không OTP), Login (không JWT), Forgot Password (có OTP).
+Ứng dụng React Native với đầy đủ tính năng authentication: Register (có/không OTP), Login (với JWT), Forgot Password (có OTP).
 
 ## 🚀 Quick Start
 
 ### 1. Chạy Backend API
 ```bash
-cd backend
+cd ../Mobile-Programming-Backend
 npm install
 npm run dev
 ```
@@ -35,9 +35,10 @@ npm start
   - `POST /api/auth/verify-otp`
   - `POST /api/auth/register`
 
-### 🔑 Đăng nhập (Login - No JWT)
-- Không sử dụng JWT (theo yêu cầu)
-- Lưu user info trong AsyncStorage
+### 🔑 Đăng nhập (Login with JWT)
+- Sử dụng JWT authentication
+- Token tự động gửi trong headers
+- Lưu user info và token trong Realm storage
 - Route: `/login`
 - API: `POST /api/auth/login`
 
@@ -52,8 +53,11 @@ npm start
 ## 🛠️ Tech Stack
 
 ### Backend
-- Node.js + Express.js
-- CORS, Body-parser
+- TypeScript + Node.js
+- Express.js
+- JWT Authentication
+- bcrypt password hashing
+- OTP verification with rate limiting
 - In-memory storage
 
 ### Frontend
@@ -94,19 +98,17 @@ Xem file `AUTHENTICATION_GUIDE.md` để biết:
 ## ⚠️ Lưu ý
 
 - **OTP**: Hiển thị trong console backend (chưa tích hợp email thật)
-- **JWT**: Không sử dụng (theo yêu cầu)
-- **Password**: Chưa hash (production nên dùng bcrypt)
+- **JWT**: Sử dụng JWT với expiry 7 ngày
+- **Password**: Đã hash bằng bcryptjs
 - **Storage**: In-memory (production nên dùng database)
+- **Rate Limiting**: 3 OTP requests mỗi 15 phút
 - **API URL**: Khi chạy trên thiết bị thật, đổi `localhost` thành IP máy tính trong `services/api.ts`
+- **Backend**: TypeScript backend nằm ở `../Mobile-Programming-Backend/`
 
 ## 📂 Cấu trúc dự án
 
 ```
 Mobile-Programming/
-├── backend/                    # Backend API
-│   ├── server.js
-│   └── README.md
-│
 ├── app/                        # Routes (Expo Router)
 │   ├── login.tsx
 │   ├── register.tsx            # Với OTP
@@ -126,13 +128,32 @@ Mobile-Programming/
 │
 └── components/auth/            # Components
     └── OTPInput.tsx
+
+../Mobile-Programming-Backend/  # TypeScript Backend (separate repo)
+├── src/
+│   ├── config/                 # Environment & constants
+│   ├── types/                  # TypeScript types
+│   ├── storage/                # In-memory storage
+│   ├── services/               # Business logic
+│   ├── middleware/             # Express middleware
+│   ├── controllers/            # Route handlers
+│   ├── routes/                 # API routes
+│   ├── utils/                  # Utilities
+│   ├── app.ts                  # Express app
+│   └── server.ts               # Entry point
+├── tsconfig.json
+├── package.json
+└── README.md
 ```
 
 ## 🌟 Highlights
 
 ✅ 2 cách đăng ký: Đơn giản (nhanh) và OTP (bảo mật)
-✅ Login không dùng JWT
+✅ Login với JWT authentication
 ✅ OTP cho Register và Forgot Password
+✅ TypeScript backend với full type safety
+✅ Password hashing với bcrypt
+✅ Rate limiting cho OTP requests
 ✅ UI đẹp với Material Design 3
 ✅ TypeScript
 ✅ Validation đầy đủ

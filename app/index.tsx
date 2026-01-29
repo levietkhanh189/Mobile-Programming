@@ -14,13 +14,13 @@ export default function IntroScreen() {
 
   const checkAuthStatus = async () => {
     try {
-      // Kiểm tra xem user đã đăng nhập chưa
-      const user = await storageService.getUser();
+      // Kiểm tra xem user đã đăng nhập chưa (cần có cả token và user)
+      const isLoggedIn = await storageService.isLoggedIn();
 
       // Delay một chút để hiển thị splash screen
       setTimeout(() => {
-        if (user) {
-          // Đã đăng nhập, chuyển đến home
+        if (isLoggedIn) {
+          // Đã đăng nhập (có token và user), chuyển đến home
           router.replace('/home');
         } else {
           // Chưa đăng nhập, chuyển đến login
