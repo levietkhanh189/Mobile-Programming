@@ -56,7 +56,7 @@ api.interceptors.response.use(
 // Types
 export interface SendOTPRequest {
   email: string;
-  purpose: 'register' | 'forgot-password';
+  purpose: 'register' | 'forgot-password' | 'update-email' | 'update-phone';
 }
 
 export interface VerifyOTPRequest {
@@ -86,6 +86,17 @@ export interface User {
   email: string;
   fullName: string;
   phone: string;
+  avatar?: string;
+  createdAt: string;
+}
+
+export interface Product {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  image: string;
   createdAt: string;
 }
 
@@ -179,6 +190,82 @@ export const authService = {
       return response.data;
     } catch (error: any) {
       throw error.response?.data || { success: false, message: 'Lỗi kết nối server' };
+    }
+  },
+};
+
+export const userService = {
+  updateProfile: async (data: { fullName?: string; avatar?: string }): Promise<ApiResponse<User>> => {
+    try {
+      const response = await api.put('/user/profile', data);
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi khi cập nhật profile' };
+    }
+  },
+
+  changePassword: async (data: { oldPassword: string; newPassword: string }): Promise<ApiResponse> => {
+    try {
+      const response = await api.post('/user/change-password', data);
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi khi đổi mật khẩu' };
+    }
+  },
+
+  requestUpdateEmail: async (newEmail: string): Promise<ApiResponse> => {
+    try {
+      const response = await api.post('/user/request-update-email', { newEmail });
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi khi yêu cầu đổi email' };
+    }
+  },
+
+  verifyUpdateEmail: async (newEmail: string, otp: string): Promise<ApiResponse<User>> => {
+    try {
+      const response = await api.post('/user/verify-update-email', { newEmail, otp });
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi khi xác thực email' };
+    }
+  },
+
+  requestUpdatePhone: async (newPhone: string): Promise<ApiResponse> => {
+    try {
+      const response = await api.post('/user/request-update-phone', { newPhone });
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi khi yêu cầu đổi SĐT' };
+    }
+  },
+
+  verifyUpdatePhone: async (newPhone: string, otp: string): Promise<ApiResponse<User>> => {
+    try {
+      const response = await api.post('/user/verify-update-phone', { newPhone, otp });
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi khi xác thực SĐT' };
+    }
+  },
+};
+
+export const productService = {
+  getProducts: async (search?: string, category?: string): Promise<ApiResponse<Product[]>> => {
+    try {
+      const response = await api.get('/products', { params: { search, category } });
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi khi lấy danh sách sản phẩm' };
+    }
+  },
+
+  getProductById: async (id: number): Promise<ApiResponse<Product>> => {
+    try {
+      const response = await api.get(`/products/${id}`);
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi khi lấy chi tiết sản phẩm' };
     }
   },
 };
