@@ -97,6 +97,8 @@ export interface Product {
   price: number;
   category: string;
   image: string;
+  soldCount: number;
+  discountPercentage: number;
   createdAt: string;
 }
 
@@ -266,6 +268,33 @@ export const productService = {
       return response.data;
     } catch (error: any) {
       throw error.response?.data || { success: false, message: 'Lỗi khi lấy chi tiết sản phẩm' };
+    }
+  },
+
+  getCategories: async (): Promise<ApiResponse<string[]>> => {
+    try {
+      const response = await api.get('/products/categories');
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi khi lấy danh sách categories' };
+    }
+  },
+
+  getTopSellers: async (limit: number = 10): Promise<ApiResponse<Product[]>> => {
+    try {
+      const response = await api.get('/products/top-sellers', { params: { limit } });
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi khi lấy danh sách sản phẩm bán chạy' };
+    }
+  },
+
+  getDiscountedProducts: async (limit: number = 20): Promise<ApiResponse<Product[]>> => {
+    try {
+      const response = await api.get('/products/discounts', { params: { limit } });
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi khi lấy danh sách sản phẩm giảm giá' };
     }
   },
 };
