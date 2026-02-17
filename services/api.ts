@@ -102,6 +102,39 @@ export interface Product {
   createdAt: string;
 }
 
+export interface OrderItem {
+  productId: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+}
+
+export interface Order {
+  id: string;
+  userId: number;
+  items: OrderItem[];
+  totalAmount: number;
+  shippingAddress: string;
+  paymentMethod: 'COD';
+  status: 'Pending' | 'Confirmed' | 'Processing' | 'Shipping' | 'Delivered' | 'Cancelled';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PaginationInfo {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface PaginatedResponse<T> {
+  success: boolean;
+  data: T[];
+  pagination: PaginationInfo;
+}
+
 export interface ApiResponse<T = any> {
   success: boolean;
   message: string;
@@ -253,9 +286,9 @@ export const userService = {
 };
 
 export const productService = {
-  getProducts: async (search?: string, category?: string): Promise<ApiResponse<Product[]>> => {
+  getProducts: async (params?: { search?: string; category?: string; page?: number; limit?: number }): Promise<PaginatedResponse<Product>> => {
     try {
-      const response = await api.get('/products', { params: { search, category } });
+      const response = await api.get('/products', { params });
       return response.data;
     } catch (error: any) {
       throw error.response?.data || { success: false, message: 'Lỗi khi lấy danh sách sản phẩm' };
@@ -295,6 +328,35 @@ export const productService = {
       return response.data;
     } catch (error: any) {
       throw error.response?.data || { success: false, message: 'Lỗi khi lấy danh sách sản phẩm giảm giá' };
+    }
+  },
+};
+
+export const orderService = {
+  checkout: async (data: { items: { productId: number; quantity: number }[]; shippingAddress: string }): Promise<ApiResponse<Order>> => {
+    try {
+      const response = await api.post('/orders/checkout', data);
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi khi đặt hàng' };
+    }
+  },
+
+  getOrderHistory: async (): Promise<ApiResponse<Order[]>> => {
+    try {
+      const response = await api.get('/orders/history');
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi khi lấy lịch sử đơn hàng' };
+    }
+  },
+
+  cancelOrder: async (id: string): Promise<ApiResponse> => {
+    try {
+      const response = await api.delete(`/orders/${id}`);
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi khi hủy đơn hàng' };
     }
   },
 };

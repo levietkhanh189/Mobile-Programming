@@ -3,6 +3,8 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { PaperProvider } from 'react-native-paper';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider as AppThemeProvider } from '@/contexts/ThemeContext';
 import { useFonts } from 'expo-font';
 import {
   Poppins_400Regular,
@@ -23,6 +25,8 @@ import { useGlassmorphismTheme } from '@/hooks/use-glassmorphism-theme';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
+
+const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -53,40 +57,44 @@ export default function RootLayout() {
   }
 
   return (
-    <PaperProvider theme={paperTheme}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="home" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="login"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="register"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="register-simple"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="forgot-password"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </PaperProvider>
+    <QueryClientProvider client={queryClient}>
+      <AppThemeProvider>
+        <PaperProvider theme={paperTheme}>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <Stack>
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="home" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="login"
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="register"
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="register-simple"
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="forgot-password"
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+            </Stack>
+            <StatusBar style="auto" />
+          </ThemeProvider>
+        </PaperProvider>
+      </AppThemeProvider>
+    </QueryClientProvider>
   );
 }
