@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, Image } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity } from 'react-native';
 import { Button, Card, Avatar, ActivityIndicator, Snackbar, Searchbar, Chip } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { storageService } from '../services/storage';
-import { authService, userService, productService, User, Product } from '../services/api';
+import { authService, productService, User, Product } from '../services/api';
 
 const CATEGORIES = ['All', 'RPG', 'Action', 'Adventure', 'Strategy'];
 
@@ -56,12 +56,15 @@ export default function HomeScreen() {
   const fetchProducts = async (search = searchQuery, category = selectedCategory) => {
     setLoadingProducts(true);
     try {
-      const response = await productService.getProducts(search, category);
+      const params: { search?: string; category?: string } = {};
+      if (search) params.search = search;
+      if (category && category !== 'All') params.category = category;
+      const response = await productService.getProducts(params);
       if (response.success && response.data) {
         setProducts(response.data);
       }
-    } catch (error: any) {
-      setSnackbar({ visible: true, message: error.message || 'Lỗi tải sản phẩm' });
+    } catch (err: any) {
+      setSnackbar({ visible: true, message: err.message || 'Lỗi tải sản phẩm' });
     } finally {
       setLoadingProducts(false);
     }
@@ -82,7 +85,7 @@ export default function HomeScreen() {
       await storageService.clearAuthData();
       setSnackbar({ visible: true, message: 'Đăng xuất thành công!' });
       setTimeout(() => router.replace('/login'), 1000);
-    } catch (error) {
+    } catch {
       setSnackbar({ visible: true, message: 'Có lỗi xảy ra khi đăng xuất' });
     }
   };

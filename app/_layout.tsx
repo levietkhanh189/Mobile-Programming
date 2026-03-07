@@ -76,13 +76,7 @@ export default function RootLayout() {
                   headerShown: false,
                 }}
               />
-              <Stack.Screen
-                name="register-simple"
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen
+<Stack.Screen
                 name="forgot-password"
                 options={{
                   headerShown: false,

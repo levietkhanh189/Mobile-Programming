@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { useCartStore, CartItem } from '@/stores/cartStore';
-import { Button, Divider } from 'react-native-paper';
+import { Button } from 'react-native-paper';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { orderService } from '@/services/api';
 import { router } from 'expo-router';

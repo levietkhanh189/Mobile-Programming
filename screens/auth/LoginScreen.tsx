@@ -183,24 +183,12 @@ const LoginScreen = () => {
               >
                 Chưa có tài khoản?
               </Text>
-              <View className="flex-row gap-3">
-                <View className="flex-1">
-                  <AnimatedButton
-                    variant="outline"
-                    title="Đăng ký đơn giản"
-                    onPress={() => router.push('/register-simple')}
-                    disabled={loading}
-                  />
-                </View>
-                <View className="flex-1">
-                  <AnimatedButton
-                    variant="primary"
-                    title="Đăng ký với OTP"
-                    onPress={() => router.push('/register')}
-                    disabled={loading}
-                  />
-                </View>
-              </View>
+              <AnimatedButton
+                variant="outline"
+                title="Đăng ký"
+                onPress={() => router.push('/register')}
+                disabled={loading}
+              />
             </GlassCard>
           </Animated.View>
         </ScrollView>

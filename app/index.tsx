@@ -21,7 +21,7 @@ export default function IntroScreen() {
       setTimeout(() => {
         if (isLoggedIn) {
           // Đã đăng nhập (có token và user), chuyển đến home
-          router.replace('/home');
+          router.replace('/(tabs)');
         } else {
           // Chưa đăng nhập, chuyển đến login
           router.replace('/login');

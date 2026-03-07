@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, SafeAreaView, Alert, RefreshControl } from 'react-native';
+import { View, Text, FlatList, SafeAreaView, Alert, RefreshControl } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { orderService, Order } from '@/services/api';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Card, Divider, Button } from 'react-native-paper';
 
 export default function OrderHistoryScreen() {

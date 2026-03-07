@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Button, TextInput, Avatar, ActivityIndicator, Snackbar, Appbar, Portal, Dialog, Divider } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { storageService } from '../services/storage';

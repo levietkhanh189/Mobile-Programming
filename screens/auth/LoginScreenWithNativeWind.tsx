@@ -189,25 +189,14 @@ const LoginScreen = () => {
                   <Text>Chưa có tài khoản? </Text>
                 </View>
 
-                {/* Register Buttons - NativeWind flexbox with gap */}
-                <View className="flex-row gap-2 mt-2">
-                  <Button
-                    mode="outlined"
-                    onPress={() => router.push('/register-simple')}
-                    disabled={loading}
-                    className="flex-1"
-                  >
-                    Đơn giản
-                  </Button>
-                  <Button
-                    mode="contained"
-                    onPress={() => router.push('/register')}
-                    disabled={loading}
-                    className="flex-1"
-                  >
-                    Với OTP
-                  </Button>
-                </View>
+                <Button
+                  mode="outlined"
+                  onPress={() => router.push('/register')}
+                  disabled={loading}
+                  className="mt-2"
+                >
+                  Đăng ký
+                </Button>
               </View>
             </Card.Content>
           </Card>

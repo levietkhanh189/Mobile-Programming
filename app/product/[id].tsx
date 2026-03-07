@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
-import { Button, ActivityIndicator, Appbar, Card } from 'react-native-paper';
+import { View, Text, StyleSheet, ScrollView, Image, Alert } from 'react-native';
+import { Button, ActivityIndicator, Appbar } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { productService, Product } from '../../services/api';
+import { useCartStore } from '../../stores/cartStore';
 
 export default function ProductDetailScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
+    const addItem = useCartStore((state) => state.addItem);
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -71,11 +73,14 @@ export default function ProductDetailScreen() {
 
                     <Button
                         mode="contained"
-                        onPress={() => { }}
+                        onPress={() => {
+                            addItem(product);
+                            Alert.alert('Thành công', `${product.name} đã được thêm vào giỏ hàng`);
+                        }}
                         style={styles.buyButton}
                         contentStyle={styles.buyButtonContent}
                     >
-                        Mua ngay
+                        Thêm vào giỏ hàng
                     </Button>
                 </View>
             </ScrollView>

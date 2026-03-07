@@ -178,16 +178,6 @@ export const authService = {
     }
   },
 
-  // Đăng ký đơn giản (không OTP)
-  registerSimple: async (data: RegisterRequest): Promise<ApiResponse<User>> => {
-    try {
-      const response = await api.post('/auth/register-simple', data);
-      return response.data;
-    } catch (error: any) {
-      throw error.response?.data || { success: false, message: 'Lỗi kết nối server' };
-    }
-  },
-
   // Đăng nhập
   login: async (data: LoginRequest): Promise<ApiResponse<User>> => {
     try {
