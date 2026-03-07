@@ -5,11 +5,10 @@ import { productService, Product } from '@/services/api';
 import { Searchbar } from 'react-native-paper';
 import { useCartStore } from '@/stores/cartStore';
 import { router } from 'expo-router';
-import Animated, { FadeInUp } from 'react-native-reanimated';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { GLASS_COLORS, SPACING, TYPOGRAPHY, SHADOWS, DEVICE } from '@/constants/theme-colors';
+import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, DEVICE } from '@/constants/theme-colors';
 
-const CARD_WIDTH = (DEVICE.width - SPACING.screenPadding * 2 - 12) / 2;
+const CARD_WIDTH = (DEVICE.width - SPACING.screenPadding * 2 - 10) / 2;
 
 export default function ProductListScreen() {
   const [search, setSearch] = useState('');
@@ -29,42 +28,37 @@ export default function ProductListScreen() {
 
   const products = data?.pages.flatMap((page) => page.data) || [];
 
-  const renderProduct = useCallback(({ item, index }: { item: Product; index: number }) => (
-    <Animated.View entering={FadeInUp.duration(400).delay(index * 50)}>
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => router.push(`/product/${item.id}` as any)}
-        accessibilityRole="button"
-        accessibilityLabel={`${item.name}, $${item.price}`}
-      >
-        <Image source={{ uri: item.image }} style={styles.cardImage} resizeMode="cover" />
-        <View style={styles.cardInfo}>
-          <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
-          <Text style={styles.cardPrice}>${item.price}</Text>
-          <View style={styles.cardFooter}>
-            <Text style={styles.cardSold}>{item.soldCount} sold</Text>
-            <TouchableOpacity
-              onPress={() => addItem(item)}
-              style={styles.addBtn}
-              accessibilityLabel={`Add ${item.name} to cart`}
-            >
-              <IconSymbol name="cart.badge.plus" size={16} color={GLASS_COLORS.white} />
-            </TouchableOpacity>
-          </View>
+  const renderProduct = useCallback(({ item }: { item: Product }) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => router.push(`/product/${item.id}` as any)}
+      accessibilityRole="button"
+      accessibilityLabel={`${item.name}, $${item.price}`}
+    >
+      <Image source={{ uri: item.image }} style={styles.cardImage} resizeMode="cover" />
+      <View style={styles.cardInfo}>
+        <Text style={styles.cardName} numberOfLines={2}>{item.name}</Text>
+        <Text style={styles.cardPrice}>${item.price}</Text>
+        <View style={styles.cardBottom}>
+          <Text style={styles.cardSold}>{item.soldCount} sold</Text>
+          <TouchableOpacity
+            onPress={() => addItem(item)}
+            style={styles.addCartBtn}
+            accessibilityLabel={`Add ${item.name} to cart`}
+          >
+            <IconSymbol name="cart.badge.plus" size={14} color={COLORS.text} />
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
-    </Animated.View>
+      </View>
+    </TouchableOpacity>
   ), [addItem]);
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backBtn}
-          accessibilityLabel="Go back"
-        >
-          <IconSymbol name="chevron.left" size={22} color={GLASS_COLORS.text} />
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} accessibilityLabel="Go back">
+          <IconSymbol name="chevron.left" size={22} color={COLORS.white} />
         </TouchableOpacity>
         <Searchbar
           placeholder="Search products..."
@@ -77,7 +71,7 @@ export default function ProductListScreen() {
 
       {isLoading ? (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={GLASS_COLORS.primary} />
+          <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       ) : (
         <FlatList
@@ -89,13 +83,11 @@ export default function ProductListScreen() {
           onEndReached={() => { if (hasNextPage) fetchNextPage(); }}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
-            isFetchingNextPage
-              ? <ActivityIndicator style={styles.footerLoader} color={GLASS_COLORS.primary} />
-              : null
+            isFetchingNextPage ? <ActivityIndicator style={{ marginVertical: 16 }} color={COLORS.primary} /> : null
           }
           refreshing={isRefetching}
           onRefresh={refetch}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
         />
       )}
@@ -104,49 +96,41 @@ export default function ProductListScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: GLASS_COLORS.backgroundDark },
+  container: { flex: 1, backgroundColor: COLORS.background },
   header: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
+    flexDirection: 'row', alignItems: 'center', gap: 8,
     paddingHorizontal: SPACING.screenPadding, paddingVertical: SPACING.sm,
-    backgroundColor: GLASS_COLORS.white, ...SHADOWS.sm,
+    backgroundColor: COLORS.headerBg,
   },
-  backBtn: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: GLASS_COLORS.backgroundDark,
-    justifyContent: 'center', alignItems: 'center',
-  },
+  backBtn: { padding: 4 },
   searchBar: {
-    flex: 1, height: 44, backgroundColor: GLASS_COLORS.backgroundDark,
-    borderRadius: 14, elevation: 0,
+    flex: 1, height: 40, backgroundColor: COLORS.white, borderRadius: 4, elevation: 0,
   },
   searchInput: { fontSize: TYPOGRAPHY.fontSize.sm, minHeight: 0 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  listContent: { paddingHorizontal: SPACING.screenPadding, paddingTop: SPACING.md, paddingBottom: 100 },
+  list: { paddingHorizontal: SPACING.screenPadding, paddingTop: SPACING.sm, paddingBottom: 80 },
   row: { justifyContent: 'space-between' },
   card: {
-    width: CARD_WIDTH, backgroundColor: GLASS_COLORS.white, borderRadius: 16,
-    overflow: 'hidden', marginBottom: 14, borderWidth: 1,
-    borderColor: GLASS_COLORS.cardBorder, ...SHADOWS.sm,
+    width: CARD_WIDTH, backgroundColor: COLORS.white, borderRadius: 4, borderWidth: 1,
+    borderColor: COLORS.cardBorder, overflow: 'hidden', marginBottom: 10, ...SHADOWS.sm,
   },
-  cardImage: { height: 140, width: '100%' },
-  cardInfo: { padding: 10 },
+  cardImage: { height: 140, width: '100%', backgroundColor: COLORS.background },
+  cardInfo: { padding: 8 },
   cardName: {
-    fontSize: TYPOGRAPHY.fontSize.sm, fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
-    color: GLASS_COLORS.text,
+    fontSize: TYPOGRAPHY.fontSize.sm, fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
+    color: COLORS.text, lineHeight: 18,
   },
   cardPrice: {
-    fontSize: TYPOGRAPHY.fontSize.base, fontFamily: TYPOGRAPHY.fontFamily.poppins.bold,
-    color: GLASS_COLORS.primary, marginTop: 2,
+    fontSize: TYPOGRAPHY.fontSize.lg, fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
+    color: COLORS.priceWhole, marginTop: 2,
   },
-  cardFooter: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8,
+  cardBottom: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6,
   },
-  cardSold: {
-    fontSize: TYPOGRAPHY.fontSize.xs, color: GLASS_COLORS.textMuted,
-    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
-  },
-  addBtn: {
-    width: 32, height: 32, borderRadius: 16, backgroundColor: GLASS_COLORS.primary,
+  cardSold: { fontSize: TYPOGRAPHY.fontSize.xs, color: COLORS.textMuted },
+  addCartBtn: {
+    width: 30, height: 30, borderRadius: 4, backgroundColor: COLORS.btnYellow,
+    borderWidth: 1, borderColor: COLORS.btnYellowBorder,
     justifyContent: 'center', alignItems: 'center',
   },
-  footerLoader: { marginVertical: SPACING.md },
 });

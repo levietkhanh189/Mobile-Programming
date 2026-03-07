@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { View, Text } from 'react-native';
 import { Portal, Dialog, TextInput, Button } from 'react-native-paper';
-import { GLASS_COLORS } from '@/constants/theme-colors';
+import { COLORS } from '@/constants/theme-colors';
 
 export type DialogType = 'none' | 'password' | 'email' | 'phone' | 'otp-email' | 'otp-phone';
 
@@ -47,7 +47,7 @@ export const ProfileDialogs = memo(function ProfileDialogs(props: ProfileDialogs
       <Dialog
         visible={dialog.visible}
         onDismiss={() => !updating && onDismiss()}
-        style={{ borderRadius: 20, backgroundColor: GLASS_COLORS.white }}
+        style={{ borderRadius: 20, backgroundColor: COLORS.white }}
       >
         <Dialog.Title style={{ fontFamily: 'Poppins_600SemiBold' }}>
           {DIALOG_TITLES[dialog.type]}
@@ -95,7 +95,7 @@ export const ProfileDialogs = memo(function ProfileDialogs(props: ProfileDialogs
           )}
           {(dialog.type === 'otp-email' || dialog.type === 'otp-phone') && (
             <View style={{ gap: 12 }}>
-              <Text style={{ color: GLASS_COLORS.textMuted }}>
+              <Text style={{ color: COLORS.textMuted }}>
                 Enter the OTP sent to {dialog.type === 'otp-email' ? props.newEmail : props.newPhone}
               </Text>
               <TextInput

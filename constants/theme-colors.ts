@@ -1,18 +1,13 @@
 /**
- * Glassmorphism Theme Colors
- * Single source of truth for color system, responsive utilities, and design tokens
+ * Amazon-style Theme Colors
+ * Simple, flat design with Amazon's signature color palette
  */
 import { Dimensions, Platform } from 'react-native';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-// Reference devices: iPhone 16 Pro (393x852), Galaxy S25 (360x780)
 const BASE_WIDTH = 393;
 
-/** Scale a value relative to screen width for responsive sizing */
 export const scale = (size: number) => (SCREEN_WIDTH / BASE_WIDTH) * size;
-
-/** Responsive value: returns iPhone value scaled proportionally */
 export const responsive = (size: number) => Math.round(scale(size));
 
 export const DEVICE = {
@@ -22,58 +17,50 @@ export const DEVICE = {
   isIOS: Platform.OS === 'ios',
 } as const;
 
-export const GLASS_COLORS = {
-  primary: '#4F46E5',
-  primaryLight: '#818CF8',
-  primaryDark: '#3730A3',
-  cta: '#F97316',
-  ctaLight: '#FB923C',
-  background: '#EEF2FF',
-  backgroundDark: '#F8FAFC',
-  text: '#1E1B4B',
-  textSecondary: '#6366F1',
-  textMuted: '#94A3B8',
-  surface: 'rgba(255, 255, 255, 0.25)',
-  surfaceLight: 'rgba(255, 255, 255, 0.08)',
-  surfaceBorder: 'rgba(255, 255, 255, 0.4)',
-  error: '#EF4444',
-  success: '#10B981',
-  warning: '#F59E0B',
+/** Amazon color palette */
+export const COLORS = {
+  // Brand
+  primary: '#FF9900',        // Amazon orange
+  primaryDark: '#E88B00',    // Darker orange
+  headerBg: '#131921',       // Amazon dark header
+  headerText: '#FFFFFF',
+  // Buttons
+  btnYellow: '#FFD814',      // Amazon yellow button
+  btnYellowBorder: '#FCD200',
+  btnYellowPressed: '#F7CA00',
+  btnOrange: '#FFA41C',      // Amazon orange button
+  // Text
+  text: '#0F1111',           // Primary text
+  textSecondary: '#565959',  // Secondary text
+  textMuted: '#888C8C',      // Muted text
+  link: '#007185',           // Amazon teal link
+  linkHover: '#C7511F',      // Orange link
+  // Backgrounds
+  background: '#EAEDED',     // Amazon light gray
   white: '#FFFFFF',
-  black: '#0F172A',
-  overlay: 'rgba(255, 255, 255, 0.15)',
+  // UI
   cardBg: '#FFFFFF',
-  cardBorder: '#F1F5F9',
-  divider: '#E2E8F0',
+  cardBorder: '#D5D9D9',
+  divider: '#DDD',
+  error: '#B12704',          // Amazon red/error price
+  success: '#067D62',        // Amazon green
+  warning: '#C45500',
+  star: '#FFA41C',           // Star rating color
+  priceBig: '#B12704',       // Sale price color
+  priceWhole: '#0F1111',
 } as const;
 
-export const GLASS_EFFECTS = {
-  blurIntensity: 20,
-  borderWidth: 1.5,
-  borderRadius: 20,
-  borderRadiusSm: 12,
-  borderRadiusLg: 28,
-  shadowOpacity: 0.08,
-  shadowRadius: 16,
-  shadowColor: '#000000',
-} as const;
-
-export const GRADIENT_COLORS = {
-  authBackground: ['#4F46E5', '#818CF8', '#C7D2FE', '#EEF2FF'],
-  authBackgroundLight: ['#6366F1', '#A5B4FC', '#DDD6FE', '#F5F3FF'],
-  splash: ['#3730A3', '#4F46E5', '#818CF8', '#C7D2FE'],
-  card: ['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.7)'],
-  tabBar: ['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.85)'],
-} as const;
+// Keep backward-compatible alias
+export const GLASS_COLORS = COLORS;
 
 export const SPACING = {
   xs: responsive(4),
   sm: responsive(8),
-  md: responsive(16),
-  lg: responsive(24),
-  xl: responsive(32),
-  xxl: responsive(48),
-  screenPadding: responsive(20),
+  md: responsive(12),
+  lg: responsive(16),
+  xl: responsive(24),
+  xxl: responsive(32),
+  screenPadding: responsive(14),
 } as const;
 
 export const TYPOGRAPHY = {
@@ -91,42 +78,61 @@ export const TYPOGRAPHY = {
   },
   fontSize: {
     xs: responsive(12),
-    sm: responsive(14),
-    base: responsive(16),
-    lg: responsive(18),
-    xl: responsive(20),
-    '2xl': responsive(24),
-    '3xl': responsive(30),
-    '4xl': responsive(36),
+    sm: responsive(13),
+    base: responsive(14),
+    lg: responsive(16),
+    xl: responsive(18),
+    '2xl': responsive(21),
+    '3xl': responsive(24),
+    '4xl': responsive(28),
   },
   lineHeight: {
     tight: 1.2,
-    normal: 1.5,
-    relaxed: 1.75,
+    normal: 1.4,
+    relaxed: 1.6,
   },
 } as const;
 
-/** Common shadow presets for consistent elevation */
 export const SHADOWS = {
   sm: {
-    shadowColor: GLASS_EFFECTS.shadowColor,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  md: {
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 2,
   },
-  md: {
-    shadowColor: GLASS_EFFECTS.shadowColor,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+  lg: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
     elevation: 4,
   },
-  lg: {
-    shadowColor: GLASS_EFFECTS.shadowColor,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 8,
-  },
+} as const;
+
+// Kept for backward compat — no longer used in new code
+export const GLASS_EFFECTS = {
+  blurIntensity: 0,
+  borderWidth: 1,
+  borderRadius: 8,
+  borderRadiusSm: 4,
+  borderRadiusLg: 8,
+  shadowOpacity: 0.08,
+  shadowRadius: 4,
+  shadowColor: '#000',
+} as const;
+
+export const GRADIENT_COLORS = {
+  authBackground: ['#131921', '#232F3E'],
+  authBackgroundLight: ['#232F3E', '#37475A'],
+  splash: ['#131921', '#232F3E'],
+  card: ['#FFFFFF', '#FFFFFF'],
+  tabBar: ['#FFFFFF', '#FFFFFF'],
 } as const;

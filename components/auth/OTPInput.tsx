@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, TextInput, StyleSheet } from 'react-native';
-import { GLASS_COLORS } from '../../constants/theme-colors';
+import { COLORS } from '@/constants/theme-colors';
 
 interface OTPInputProps {
   length?: number;
@@ -65,9 +65,9 @@ const OTPInput: React.FC<OTPInputProps> = ({
           style={[
             styles.input,
             {
-              borderColor: digit ? GLASS_COLORS.cta : 'rgba(255, 255, 255, 0.5)',
-              backgroundColor: 'rgba(255, 255, 255, 0.15)',
-              color: GLASS_COLORS.white,
+              borderColor: digit ? COLORS.primary : COLORS.cardBorder,
+              backgroundColor: COLORS.white,
+              color: COLORS.text,
             },
           ]}
           value={digit}

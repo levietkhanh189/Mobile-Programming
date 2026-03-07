@@ -1,8 +1,7 @@
 import React, { memo, useCallback } from 'react';
 import { ScrollView, View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import Animated, { FadeInRight } from 'react-native-reanimated';
 import { Product } from '@/services/api';
-import { GLASS_COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '@/constants/theme-colors';
+import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '@/constants/theme-colors';
 
 interface TopSellersProps {
   products: Product[];
@@ -12,34 +11,24 @@ interface TopSellersProps {
 const ProductCard = memo(function ProductCard({
   product,
   onPress,
-  index,
 }: {
   product: Product;
   onPress: () => void;
-  index: number;
 }) {
   return (
-    <Animated.View entering={FadeInRight.duration(400).delay(index * 80)}>
-      <TouchableOpacity
-        onPress={onPress}
-        style={styles.card}
-        accessibilityRole="button"
-        accessibilityLabel={`${product.name}, $${product.price}, ${product.soldCount} sold`}
-      >
-        <Image
-          source={{ uri: product.image }}
-          style={styles.image}
-          resizeMode="cover"
-        />
-        <View style={styles.info}>
-          <Text style={styles.name} numberOfLines={1}>{product.name}</Text>
-          <Text style={styles.price}>${product.price}</Text>
-          <View style={styles.soldBadge}>
-            <Text style={styles.soldText}>{product.soldCount} sold</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    </Animated.View>
+    <TouchableOpacity
+      onPress={onPress}
+      style={styles.card}
+      accessibilityRole="button"
+      accessibilityLabel={`${product.name}, $${product.price}`}
+    >
+      <Image source={{ uri: product.image }} style={styles.image} resizeMode="cover" />
+      <View style={styles.info}>
+        <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
+        <Text style={styles.price}>${product.price}</Text>
+        <Text style={styles.sold}>{product.soldCount} bought</Text>
+      </View>
+    </TouchableOpacity>
   );
 });
 
@@ -51,18 +40,17 @@ export const TopSellers = memo(function TopSellers({ products, onProductPress }:
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Top Sellers</Text>
+      <Text style={styles.title}>Best Sellers</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {products.map((product, idx) => (
+        {products.map((product) => (
           <ProductCard
             key={product.id}
             product={product}
             onPress={() => handlePress(product)}
-            index={idx}
           />
         ))}
       </ScrollView>
@@ -72,57 +60,53 @@ export const TopSellers = memo(function TopSellers({ products, onProductPress }:
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: SPACING.md,
+    backgroundColor: COLORS.white,
+    paddingVertical: SPACING.md,
+    marginBottom: SPACING.sm,
   },
   title: {
     fontSize: TYPOGRAPHY.fontSize.lg,
-    fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
-    color: GLASS_COLORS.text,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.bold,
+    color: COLORS.text,
     paddingHorizontal: SPACING.screenPadding,
     marginBottom: SPACING.sm,
   },
   scrollContent: {
     paddingHorizontal: SPACING.screenPadding,
-    gap: 14,
+    gap: 10,
   },
   card: {
-    width: 160,
-    backgroundColor: GLASS_COLORS.white,
-    borderRadius: 16,
-    overflow: 'hidden',
+    width: 150,
+    backgroundColor: COLORS.white,
+    borderRadius: 4,
     borderWidth: 1,
-    borderColor: GLASS_COLORS.cardBorder,
-    ...SHADOWS.md,
+    borderColor: COLORS.cardBorder,
+    overflow: 'hidden',
+    ...SHADOWS.sm,
   },
   image: {
-    height: 130,
+    height: 150,
     width: '100%',
+    backgroundColor: COLORS.background,
   },
   info: {
-    padding: 12,
+    padding: 8,
   },
   name: {
     fontSize: TYPOGRAPHY.fontSize.sm,
-    fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
-    color: GLASS_COLORS.text,
+    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
+    color: COLORS.text,
+    lineHeight: 18,
   },
   price: {
-    fontSize: TYPOGRAPHY.fontSize.base,
-    fontFamily: TYPOGRAPHY.fontFamily.poppins.bold,
-    color: GLASS_COLORS.primary,
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
+    color: COLORS.priceWhole,
     marginTop: 4,
   },
-  soldBadge: {
-    marginTop: 6,
-    backgroundColor: GLASS_COLORS.background,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-  },
-  soldText: {
+  sold: {
     fontSize: TYPOGRAPHY.fontSize.xs,
-    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
-    color: GLASS_COLORS.textSecondary,
+    color: COLORS.textSecondary,
+    marginTop: 2,
   },
 });

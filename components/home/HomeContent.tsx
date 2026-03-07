@@ -6,7 +6,7 @@ import { CategoryList } from './CategoryList';
 import { TopSellers } from './TopSellers';
 import { DiscountedProducts } from './DiscountedProducts';
 import { router } from 'expo-router';
-import { GLASS_COLORS } from '@/constants/theme-colors';
+import { COLORS } from '@/constants/theme-colors';
 
 export const HomeContent = () => {
   const { data: categoriesData, isLoading: catLoading, refetch: refetchCats } = useQuery({
@@ -39,7 +39,7 @@ export const HomeContent = () => {
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center py-10">
-        <ActivityIndicator size="large" color={GLASS_COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
@@ -47,13 +47,9 @@ export const HomeContent = () => {
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 100 }}
+      contentContainerStyle={{ paddingBottom: 80 }}
       refreshControl={
-        <RefreshControl
-          refreshing={false}
-          onRefresh={onRefresh}
-          tintColor={GLASS_COLORS.primary}
-        />
+        <RefreshControl refreshing={false} onRefresh={onRefresh} tintColor={COLORS.primary} />
       }
     >
       <CategoryList

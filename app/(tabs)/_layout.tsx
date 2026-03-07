@@ -4,19 +4,18 @@ import { Platform, StyleSheet } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { GLASS_COLORS, SHADOWS } from '@/constants/theme-colors';
+import { COLORS } from '@/constants/theme-colors';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: GLASS_COLORS.primary,
-        tabBarInactiveTintColor: GLASS_COLORS.textMuted,
+        tabBarActiveTintColor: COLORS.link,
+        tabBarInactiveTintColor: COLORS.textMuted,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: styles.tabBar,
         tabBarLabelStyle: styles.tabLabel,
-        tabBarItemStyle: styles.tabItem,
       }}>
       <Tabs.Screen
         name="index"
@@ -56,25 +55,14 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderTopWidth: 0,
-    height: Platform.OS === 'ios' ? 88 : 64,
-    paddingTop: 8,
-    ...SHADOWS.lg,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.divider,
+    height: Platform.OS === 'ios' ? 84 : 60,
+    paddingTop: 4,
   },
   tabLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: 'Poppins_500Medium',
-    letterSpacing: 0.2,
-    marginTop: 2,
-  },
-  tabItem: {
-    paddingVertical: 4,
   },
 });

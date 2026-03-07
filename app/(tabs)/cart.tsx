@@ -1,11 +1,10 @@
 import React, { useCallback } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, SafeAreaView, Alert, StyleSheet } from 'react-native';
-import Animated, { FadeInDown, FadeInUp, Layout } from 'react-native-reanimated';
 import { useCartStore, CartItem } from '@/stores/cartStore';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { orderService } from '@/services/api';
 import { router } from 'expo-router';
-import { GLASS_COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '@/constants/theme-colors';
+import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '@/constants/theme-colors';
 
 export default function CartScreen() {
   const { items, updateQuantity, removeItem, clearCart, getTotal } = useCartStore();
@@ -28,34 +27,20 @@ export default function CartScreen() {
     }
   }, [items, clearCart]);
 
-  const renderItem = useCallback(({ item, index }: { item: CartItem; index: number }) => (
-    <Animated.View
-      entering={FadeInDown.duration(400).delay(index * 80)}
-      layout={Layout.springify()}
-      style={styles.card}
-    >
+  const renderItem = useCallback(({ item }: { item: CartItem }) => (
+    <View style={styles.card}>
       <Image source={{ uri: item.image }} style={styles.image} />
-      <View style={styles.cardContent}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
-          <TouchableOpacity
-            onPress={() => removeItem(item.id)}
-            style={styles.deleteBtn}
-            accessibilityRole="button"
-            accessibilityLabel={`Remove ${item.name} from cart`}
-          >
-            <IconSymbol name="trash" size={18} color={GLASS_COLORS.error} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.cardFooter}>
-          <Text style={styles.price}>${item.price}</Text>
-          <View style={styles.quantityControl}>
+      <View style={styles.cardBody}>
+        <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
+        <Text style={styles.price}>${item.price}</Text>
+        <View style={styles.cardActions}>
+          <View style={styles.qtyRow}>
             <TouchableOpacity
               onPress={() => updateQuantity(item.id, item.quantity - 1)}
               style={styles.qtyBtn}
               accessibilityLabel="Decrease quantity"
             >
-              <IconSymbol name="minus" size={14} color={GLASS_COLORS.text} />
+              <Text style={styles.qtyBtnText}>-</Text>
             </TouchableOpacity>
             <Text style={styles.qtyText}>{item.quantity}</Text>
             <TouchableOpacity
@@ -63,34 +48,37 @@ export default function CartScreen() {
               style={styles.qtyBtn}
               accessibilityLabel="Increase quantity"
             >
-              <IconSymbol name="plus" size={14} color={GLASS_COLORS.text} />
+              <Text style={styles.qtyBtnText}>+</Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity
+            onPress={() => removeItem(item.id)}
+            accessibilityLabel={`Remove ${item.name}`}
+          >
+            <Text style={styles.deleteText}>Delete</Text>
+          </TouchableOpacity>
         </View>
       </View>
-    </Animated.View>
+    </View>
   ), [removeItem, updateQuantity]);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Your Cart</Text>
+        <Text style={styles.headerTitle}>Shopping Cart</Text>
         <Text style={styles.headerCount}>{items.length} items</Text>
       </View>
 
       {items.length === 0 ? (
-        <View style={styles.emptyState} accessibilityRole="text">
-          <View style={styles.emptyIcon}>
-            <IconSymbol name="cart.fill" size={48} color={GLASS_COLORS.textMuted} />
-          </View>
-          <Text style={styles.emptyTitle}>Cart is empty</Text>
-          <Text style={styles.emptySubtitle}>Start shopping to add items</Text>
+        <View style={styles.empty}>
+          <IconSymbol name="cart.fill" size={48} color={COLORS.cardBorder} />
+          <Text style={styles.emptyTitle}>Your cart is empty</Text>
           <TouchableOpacity
-            style={styles.browseBtn}
+            style={styles.shopBtn}
             onPress={() => router.push('/(tabs)/' as any)}
             accessibilityRole="button"
           >
-            <Text style={styles.browseBtnText}>Browse Products</Text>
+            <Text style={styles.shopBtnText}>Continue Shopping</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -99,12 +87,12 @@ export default function CartScreen() {
             data={items}
             renderItem={renderItem}
             keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
           />
-          <Animated.View entering={FadeInUp.duration(500)} style={styles.checkoutBar}>
+          <View style={styles.footer}>
             <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalLabel}>Subtotal ({items.length} items):</Text>
               <Text style={styles.totalAmount}>${getTotal().toFixed(2)}</Text>
             </View>
             <TouchableOpacity
@@ -113,9 +101,9 @@ export default function CartScreen() {
               accessibilityRole="button"
               accessibilityLabel={`Checkout, total $${getTotal().toFixed(2)}`}
             >
-              <Text style={styles.checkoutBtnText}>Checkout (COD)</Text>
+              <Text style={styles.checkoutText}>Proceed to Checkout (COD)</Text>
             </TouchableOpacity>
-          </Animated.View>
+          </View>
         </>
       )}
     </SafeAreaView>
@@ -123,90 +111,92 @@ export default function CartScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: GLASS_COLORS.backgroundDark },
+  container: { flex: 1, backgroundColor: COLORS.background },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: SPACING.screenPadding, paddingVertical: SPACING.md,
-    backgroundColor: GLASS_COLORS.white, ...SHADOWS.sm,
+    backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.divider,
   },
   headerTitle: {
     fontSize: TYPOGRAPHY.fontSize['2xl'], fontFamily: TYPOGRAPHY.fontFamily.poppins.bold,
-    color: GLASS_COLORS.text,
+    color: COLORS.text,
   },
-  headerCount: {
-    fontSize: TYPOGRAPHY.fontSize.sm, color: GLASS_COLORS.textMuted,
-    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
-  },
-  listContent: { padding: SPACING.md, paddingBottom: 200 },
+  headerCount: { fontSize: TYPOGRAPHY.fontSize.sm, color: COLORS.textSecondary },
+  list: { padding: SPACING.screenPadding, paddingBottom: 160 },
   card: {
-    flexDirection: 'row', backgroundColor: GLASS_COLORS.white, borderRadius: 16,
-    marginBottom: 12, overflow: 'hidden', borderWidth: 1,
-    borderColor: GLASS_COLORS.cardBorder, ...SHADOWS.sm,
+    flexDirection: 'row', backgroundColor: COLORS.white, borderWidth: 1,
+    borderColor: COLORS.cardBorder, borderRadius: 4, marginBottom: 10,
+    overflow: 'hidden', ...SHADOWS.sm,
   },
-  image: { width: 100, height: 100 },
-  cardContent: { flex: 1, padding: 12, justifyContent: 'space-between' },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between' },
+  image: { width: 110, height: 110 },
+  cardBody: { flex: 1, padding: 10, justifyContent: 'space-between' },
   itemName: {
-    flex: 1, marginRight: 8, fontSize: TYPOGRAPHY.fontSize.sm,
-    fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold, color: GLASS_COLORS.text,
+    fontSize: TYPOGRAPHY.fontSize.base, fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
+    color: COLORS.text, lineHeight: 18,
   },
-  deleteBtn: { padding: 4 },
-  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   price: {
-    fontSize: TYPOGRAPHY.fontSize.base, fontFamily: TYPOGRAPHY.fontFamily.poppins.bold,
-    color: GLASS_COLORS.primary,
+    fontSize: TYPOGRAPHY.fontSize.lg, fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
+    color: COLORS.priceBig,
   },
-  quantityControl: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: GLASS_COLORS.backgroundDark,
-    borderRadius: 20, paddingHorizontal: 4, paddingVertical: 2,
+  cardActions: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  qtyBtn: { width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  qtyRow: {
+    flexDirection: 'row', alignItems: 'center', borderWidth: 1,
+    borderColor: COLORS.cardBorder, borderRadius: 4, overflow: 'hidden',
+  },
+  qtyBtn: {
+    width: 34, height: 30, justifyContent: 'center', alignItems: 'center',
+    backgroundColor: COLORS.background,
+  },
+  qtyBtnText: { fontSize: 16, color: COLORS.text },
   qtyText: {
-    marginHorizontal: 12, fontSize: TYPOGRAPHY.fontSize.sm,
-    fontFamily: TYPOGRAPHY.fontFamily.poppins.bold, color: GLASS_COLORS.text,
+    minWidth: 34, textAlign: 'center', fontSize: TYPOGRAPHY.fontSize.base,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.medium, color: COLORS.text,
+    backgroundColor: COLORS.white, lineHeight: 30,
   },
-  emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.xl },
-  emptyIcon: {
-    width: 80, height: 80, borderRadius: 40, backgroundColor: GLASS_COLORS.background,
-    justifyContent: 'center', alignItems: 'center', marginBottom: SPACING.md,
+  deleteText: {
+    fontSize: TYPOGRAPHY.fontSize.sm, color: COLORS.link,
+    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
   },
+  empty: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.xxl },
   emptyTitle: {
-    fontSize: TYPOGRAPHY.fontSize.xl, fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
-    color: GLASS_COLORS.text,
-  },
-  emptySubtitle: {
-    fontSize: TYPOGRAPHY.fontSize.sm, color: GLASS_COLORS.textMuted, marginTop: 4,
+    fontSize: TYPOGRAPHY.fontSize.lg, color: COLORS.textSecondary, marginTop: SPACING.md,
     fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
   },
-  browseBtn: {
-    marginTop: SPACING.lg, backgroundColor: GLASS_COLORS.primary, paddingHorizontal: 28,
-    paddingVertical: 14, borderRadius: 14, ...SHADOWS.md,
+  shopBtn: {
+    marginTop: SPACING.xl, backgroundColor: COLORS.btnYellow, borderWidth: 1,
+    borderColor: COLORS.btnYellowBorder, borderRadius: 8, paddingHorizontal: 28,
+    paddingVertical: 12,
   },
-  browseBtnText: {
-    color: GLASS_COLORS.white, fontSize: TYPOGRAPHY.fontSize.base,
-    fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
+  shopBtnText: {
+    fontSize: TYPOGRAPHY.fontSize.base, fontFamily: TYPOGRAPHY.fontFamily.poppins.medium,
+    color: COLORS.text,
   },
-  checkoutBar: {
+  footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: GLASS_COLORS.white, paddingHorizontal: SPACING.screenPadding,
-    paddingTop: SPACING.md, paddingBottom: SPACING.xxl, borderTopLeftRadius: 28,
-    borderTopRightRadius: 28, ...SHADOWS.lg,
+    backgroundColor: COLORS.white, paddingHorizontal: SPACING.screenPadding,
+    paddingTop: SPACING.md, paddingBottom: SPACING.xxl,
+    borderTopWidth: 1, borderTopColor: COLORS.divider,
   },
-  totalRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.md },
+  totalRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
   totalLabel: {
-    fontSize: TYPOGRAPHY.fontSize.base, color: GLASS_COLORS.textMuted,
-    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
+    fontSize: TYPOGRAPHY.fontSize.lg, fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
+    color: COLORS.text,
   },
   totalAmount: {
     fontSize: TYPOGRAPHY.fontSize['2xl'], fontFamily: TYPOGRAPHY.fontFamily.poppins.bold,
-    color: GLASS_COLORS.primary,
+    color: COLORS.priceBig,
   },
   checkoutBtn: {
-    backgroundColor: GLASS_COLORS.cta, paddingVertical: 16, borderRadius: 14,
-    alignItems: 'center', ...SHADOWS.md,
+    backgroundColor: COLORS.btnYellow, borderWidth: 1, borderColor: COLORS.btnYellowBorder,
+    borderRadius: 8, paddingVertical: 14, alignItems: 'center',
   },
-  checkoutBtnText: {
-    color: GLASS_COLORS.white, fontSize: TYPOGRAPHY.fontSize.base,
-    fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold, letterSpacing: 0.3,
+  checkoutText: {
+    fontSize: TYPOGRAPHY.fontSize.base, fontFamily: TYPOGRAPHY.fontFamily.poppins.medium,
+    color: COLORS.text,
   },
 });

@@ -2,12 +2,11 @@ import { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { TextInput, Avatar, ActivityIndicator, Snackbar } from 'react-native-paper';
 import { useRouter } from 'expo-router';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { storageService } from '../services/storage';
 import { authService, userService, User } from '../services/api';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ProfileDialogs, DialogType } from '@/components/profile/profile-dialogs';
-import { GLASS_COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '@/constants/theme-colors';
+import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme-colors';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -21,17 +20,10 @@ export default function ProfileScreen() {
   const [newEmail, setNewEmail] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [otp, setOtp] = useState('');
-  const [dialog, setDialog] = useState<{ type: DialogType; visible: boolean }>({
-    type: 'none', visible: false,
-  });
+  const [dialog, setDialog] = useState<{ type: DialogType; visible: boolean }>({ type: 'none', visible: false });
 
-  const showSnackbar = useCallback((message: string) => {
-    setSnackbar({ visible: true, message });
-  }, []);
-
-  const closeDialog = useCallback(() => {
-    setDialog({ type: 'none', visible: false });
-  }, []);
+  const showSnackbar = useCallback((msg: string) => setSnackbar({ visible: true, message: msg }), []);
+  const closeDialog = useCallback(() => setDialog({ type: 'none', visible: false }), []);
 
   useEffect(() => {
     (async () => {
@@ -40,7 +32,7 @@ export default function ProfileScreen() {
         if (cached) { setUser(cached); setFullName(cached.fullName); }
         const res = await authService.getUserProfile();
         if (res.user) { setUser(res.user); setFullName(res.user.fullName); await storageService.saveUser(res.user); }
-      } catch (e) { console.error('Error loading user:', e); }
+      } catch (e) { console.error(e); }
       finally { setLoading(false); }
     })();
   }, []);
@@ -51,213 +43,131 @@ export default function ProfileScreen() {
     try {
       const res = await userService.updateProfile({ fullName });
       if (res.success && res.user) { setUser(res.user); await storageService.saveUser(res.user); showSnackbar('Profile updated!'); }
-    } catch (e: any) { showSnackbar(e.message || 'Error updating profile'); }
-    finally { setUpdating(false); }
+    } catch (e: any) { showSnackbar(e.message || 'Error'); } finally { setUpdating(false); }
   }, [fullName, showSnackbar]);
 
   const handleChangePassword = useCallback(async () => {
-    if (!oldPassword || !newPassword) return showSnackbar('Please fill all fields');
+    if (!oldPassword || !newPassword) return showSnackbar('Fill all fields');
     setUpdating(true);
     try {
       const res = await userService.changePassword({ oldPassword, newPassword });
       if (res.success) { closeDialog(); showSnackbar('Password changed!'); setOldPassword(''); setNewPassword(''); }
-    } catch (e: any) { showSnackbar(e.message || 'Error changing password'); }
-    finally { setUpdating(false); }
+    } catch (e: any) { showSnackbar(e.message || 'Error'); } finally { setUpdating(false); }
   }, [oldPassword, newPassword, showSnackbar, closeDialog]);
 
   const handleRequestEmail = useCallback(async () => {
-    if (!newEmail) return showSnackbar('Please enter email');
+    if (!newEmail) return showSnackbar('Enter email');
     setUpdating(true);
     try {
       const res = await userService.requestUpdateEmail(newEmail);
-      if (res.success) { setDialog({ type: 'otp-email', visible: true }); showSnackbar('OTP sent to new email'); }
-    } catch (e: any) { showSnackbar(e.message || 'Error'); }
-    finally { setUpdating(false); }
+      if (res.success) { setDialog({ type: 'otp-email', visible: true }); showSnackbar('OTP sent'); }
+    } catch (e: any) { showSnackbar(e.message || 'Error'); } finally { setUpdating(false); }
   }, [newEmail, showSnackbar]);
 
   const handleVerifyEmail = useCallback(async () => {
-    if (!otp) return showSnackbar('Please enter OTP');
+    if (!otp) return showSnackbar('Enter OTP');
     setUpdating(true);
     try {
       const res = await userService.verifyUpdateEmail(newEmail, otp);
       if (res.success && res.user) { setUser(res.user); await storageService.saveUser(res.user); closeDialog(); showSnackbar('Email updated!'); setOtp(''); }
-    } catch (e: any) { showSnackbar(e.message || 'Invalid OTP'); }
-    finally { setUpdating(false); }
+    } catch (e: any) { showSnackbar(e.message || 'Invalid OTP'); } finally { setUpdating(false); }
   }, [newEmail, otp, showSnackbar, closeDialog]);
 
   const handleRequestPhone = useCallback(async () => {
-    if (!newPhone) return showSnackbar('Please enter phone');
+    if (!newPhone) return showSnackbar('Enter phone');
     setUpdating(true);
     try {
       const res = await userService.requestUpdatePhone(newPhone);
       if (res.success) { setDialog({ type: 'otp-phone', visible: true }); showSnackbar('OTP sent'); }
-    } catch (e: any) { showSnackbar(e.message || 'Error'); }
-    finally { setUpdating(false); }
+    } catch (e: any) { showSnackbar(e.message || 'Error'); } finally { setUpdating(false); }
   }, [newPhone, showSnackbar]);
 
   const handleVerifyPhone = useCallback(async () => {
-    if (!otp) return showSnackbar('Please enter OTP');
+    if (!otp) return showSnackbar('Enter OTP');
     setUpdating(true);
     try {
       const res = await userService.verifyUpdatePhone(newPhone, otp);
       if (res.success && res.user) { setUser(res.user); await storageService.saveUser(res.user); closeDialog(); showSnackbar('Phone updated!'); setOtp(''); }
-    } catch (e: any) { showSnackbar(e.message || 'Invalid OTP'); }
-    finally { setUpdating(false); }
+    } catch (e: any) { showSnackbar(e.message || 'Invalid OTP'); } finally { setUpdating(false); }
   }, [newPhone, otp, showSnackbar, closeDialog]);
 
-  if (loading) {
-    return <View style={styles.centered}><ActivityIndicator size="large" color={GLASS_COLORS.primary} /></View>;
-  }
+  if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color={COLORS.primary} /></View>;
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} accessibilityLabel="Go back">
-          <IconSymbol name="chevron.left" size={22} color={GLASS_COLORS.text} />
+        <TouchableOpacity onPress={() => router.back()} accessibilityLabel="Go back">
+          <IconSymbol name="chevron.left" size={22} color={COLORS.white} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Profile</Text>
-        <View style={{ width: 40 }} />
+        <Text style={styles.headerTitle}>Your Account</Text>
+        <View style={{ width: 22 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Avatar section */}
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.avatarSection}>
-          <Avatar.Text
-            size={88}
-            label={user?.fullName?.substring(0, 2).toUpperCase() || 'U'}
-            style={{ backgroundColor: GLASS_COLORS.primary }}
-          />
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <View style={styles.avatarSection}>
+          <Avatar.Text size={72} label={user?.fullName?.substring(0, 2).toUpperCase() || 'U'} style={{ backgroundColor: COLORS.headerBg }} />
           <Text style={styles.userName}>{user?.fullName}</Text>
           <Text style={styles.userEmail}>{user?.email}</Text>
-        </Animated.View>
+        </View>
 
-        {/* Edit name */}
-        <Animated.View entering={FadeInDown.duration(400).delay(100)} style={styles.section}>
-          <Text style={styles.sectionTitle}>Personal Info</Text>
-          <TextInput
-            value={fullName}
-            onChangeText={setFullName}
-            mode="outlined"
-            label="Full Name"
-            style={styles.input}
-            outlineStyle={{ borderRadius: 14 }}
-            accessibilityLabel="Full name"
-          />
-          <TouchableOpacity
-            style={styles.saveBtn}
-            onPress={handleUpdateProfile}
-            disabled={updating}
-            accessibilityRole="button"
-          >
-            <Text style={styles.saveBtnText}>
-              {updating && dialog.type === 'none' ? 'Saving...' : 'Save Changes'}
-            </Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Personal Information</Text>
+          <TextInput value={fullName} onChangeText={setFullName} mode="outlined" label="Full Name"
+            style={styles.input} outlineStyle={{ borderRadius: 4 }} accessibilityLabel="Full name" />
+          <TouchableOpacity style={styles.saveBtn} onPress={handleUpdateProfile} disabled={updating}>
+            <Text style={styles.saveBtnText}>{updating && dialog.type === 'none' ? 'Saving...' : 'Save Changes'}</Text>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
 
-        {/* Security menu */}
-        <Animated.View entering={FadeInDown.duration(400).delay(200)} style={styles.section}>
-          <Text style={styles.sectionTitle}>Security & Links</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Login & Security</Text>
           {[
-            { title: 'Change Password', sub: 'Update your login password', type: 'password' as DialogType, onPress: () => setDialog({ type: 'password', visible: true }) },
-            { title: 'Email', sub: user?.email || '', type: 'email' as DialogType, onPress: () => { setNewEmail(user?.email || ''); setDialog({ type: 'email', visible: true }); } },
-            { title: 'Phone', sub: user?.phone || 'Not linked', type: 'phone' as DialogType, onPress: () => { setNewPhone(user?.phone || ''); setDialog({ type: 'phone', visible: true }); } },
+            { title: 'Password', sub: 'Change your password', onPress: () => setDialog({ type: 'password', visible: true }) },
+            { title: 'Email', sub: user?.email || '', onPress: () => { setNewEmail(user?.email || ''); setDialog({ type: 'email', visible: true }); } },
+            { title: 'Phone', sub: user?.phone || 'Not linked', onPress: () => { setNewPhone(user?.phone || ''); setDialog({ type: 'phone', visible: true }); } },
           ].map((item) => (
-            <TouchableOpacity
-              key={item.type}
-              style={styles.menuItem}
-              onPress={item.onPress}
-              accessibilityRole="button"
-              accessibilityLabel={item.title}
-            >
+            <TouchableOpacity key={item.title} style={styles.menuItem} onPress={item.onPress} accessibilityRole="button">
               <View style={{ flex: 1 }}>
                 <Text style={styles.menuTitle}>{item.title}</Text>
                 <Text style={styles.menuSub} numberOfLines={1}>{item.sub}</Text>
               </View>
-              <IconSymbol name="chevron.right" size={18} color={GLASS_COLORS.textMuted} />
+              <IconSymbol name="chevron.right" size={16} color={COLORS.textMuted} />
             </TouchableOpacity>
           ))}
-        </Animated.View>
-        <View style={{ height: 40 }} />
+        </View>
       </ScrollView>
 
-      <ProfileDialogs
-        dialog={dialog}
-        onDismiss={closeDialog}
-        updating={updating}
+      <ProfileDialogs dialog={dialog} onDismiss={closeDialog} updating={updating}
         oldPassword={oldPassword} setOldPassword={setOldPassword}
-        newPassword={newPassword} setNewPassword={setNewPassword}
-        onChangePassword={handleChangePassword}
-        newEmail={newEmail} setNewEmail={setNewEmail}
-        onRequestEmail={handleRequestEmail} onVerifyEmail={handleVerifyEmail}
-        newPhone={newPhone} setNewPhone={setNewPhone}
-        onRequestPhone={handleRequestPhone} onVerifyPhone={handleVerifyPhone}
+        newPassword={newPassword} setNewPassword={setNewPassword} onChangePassword={handleChangePassword}
+        newEmail={newEmail} setNewEmail={setNewEmail} onRequestEmail={handleRequestEmail} onVerifyEmail={handleVerifyEmail}
+        newPhone={newPhone} setNewPhone={setNewPhone} onRequestPhone={handleRequestPhone} onVerifyPhone={handleVerifyPhone}
         otp={otp} setOtp={setOtp}
       />
-
-      <Snackbar visible={snackbar.visible} onDismiss={() => setSnackbar({ ...snackbar, visible: false })} duration={3000}>
-        {snackbar.message}
-      </Snackbar>
+      <Snackbar visible={snackbar.visible} onDismiss={() => setSnackbar({ ...snackbar, visible: false })} duration={3000}>{snackbar.message}</Snackbar>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: GLASS_COLORS.backgroundDark },
+  container: { flex: 1, backgroundColor: COLORS.background },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm,
-    backgroundColor: GLASS_COLORS.white, ...SHADOWS.sm,
+    paddingHorizontal: SPACING.screenPadding, paddingTop: 50, paddingBottom: 12,
+    backgroundColor: COLORS.headerBg,
   },
-  backBtn: {
-    width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: TYPOGRAPHY.fontSize.lg, fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
-    color: GLASS_COLORS.text,
-  },
-  scrollContent: { paddingBottom: 40 },
-  avatarSection: {
-    alignItems: 'center', paddingVertical: SPACING.lg,
-    backgroundColor: GLASS_COLORS.white, marginBottom: SPACING.sm,
-  },
-  userName: {
-    fontSize: TYPOGRAPHY.fontSize.xl, fontFamily: TYPOGRAPHY.fontFamily.poppins.bold,
-    color: GLASS_COLORS.text, marginTop: SPACING.sm,
-  },
-  userEmail: {
-    fontSize: TYPOGRAPHY.fontSize.sm, color: GLASS_COLORS.textMuted,
-    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular, marginTop: 2,
-  },
-  section: {
-    backgroundColor: GLASS_COLORS.white, marginHorizontal: SPACING.md,
-    marginTop: SPACING.md, borderRadius: 20, padding: SPACING.md, ...SHADOWS.sm,
-  },
-  sectionTitle: {
-    fontSize: TYPOGRAPHY.fontSize.base, fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
-    color: GLASS_COLORS.text, marginBottom: SPACING.sm,
-  },
-  input: { backgroundColor: GLASS_COLORS.backgroundDark, marginBottom: SPACING.sm },
-  saveBtn: {
-    backgroundColor: GLASS_COLORS.primary, paddingVertical: 14, borderRadius: 14,
-    alignItems: 'center', ...SHADOWS.md,
-  },
-  saveBtnText: {
-    color: GLASS_COLORS.white, fontSize: TYPOGRAPHY.fontSize.base,
-    fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
-  },
-  menuItem: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: GLASS_COLORS.backgroundDark,
-    padding: SPACING.md, borderRadius: 14, marginBottom: SPACING.sm,
-  },
-  menuTitle: {
-    fontSize: TYPOGRAPHY.fontSize.base, fontFamily: TYPOGRAPHY.fontFamily.poppins.medium,
-    color: GLASS_COLORS.text,
-  },
-  menuSub: {
-    fontSize: TYPOGRAPHY.fontSize.xs, color: GLASS_COLORS.textMuted, marginTop: 2,
-    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
-  },
+  headerTitle: { fontSize: TYPOGRAPHY.fontSize.lg, fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold, color: COLORS.white },
+  scroll: { paddingBottom: 40 },
+  avatarSection: { alignItems: 'center', paddingVertical: SPACING.xl, backgroundColor: COLORS.white, marginBottom: SPACING.sm },
+  userName: { fontSize: TYPOGRAPHY.fontSize.xl, fontFamily: TYPOGRAPHY.fontFamily.poppins.bold, color: COLORS.text, marginTop: SPACING.sm },
+  userEmail: { fontSize: TYPOGRAPHY.fontSize.sm, color: COLORS.textSecondary, marginTop: 2 },
+  section: { backgroundColor: COLORS.white, marginHorizontal: SPACING.screenPadding, marginTop: SPACING.md, borderRadius: 4, borderWidth: 1, borderColor: COLORS.cardBorder, padding: SPACING.md },
+  sectionTitle: { fontSize: TYPOGRAPHY.fontSize.lg, fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold, color: COLORS.text, marginBottom: SPACING.sm },
+  input: { backgroundColor: COLORS.white, marginBottom: SPACING.md },
+  saveBtn: { backgroundColor: COLORS.btnYellow, borderWidth: 1, borderColor: COLORS.btnYellowBorder, borderRadius: 8, paddingVertical: 12, alignItems: 'center' },
+  saveBtnText: { fontSize: TYPOGRAPHY.fontSize.base, fontFamily: TYPOGRAPHY.fontFamily.poppins.medium, color: COLORS.text },
+  menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: SPACING.md, borderBottomWidth: 1, borderBottomColor: COLORS.divider },
+  menuTitle: { fontSize: TYPOGRAPHY.fontSize.base, fontFamily: TYPOGRAPHY.fontFamily.poppins.medium, color: COLORS.text },
+  menuSub: { fontSize: TYPOGRAPHY.fontSize.sm, color: COLORS.textSecondary, marginTop: 2 },
 });
