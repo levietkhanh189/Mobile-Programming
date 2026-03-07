@@ -61,29 +61,17 @@ export default function RootLayout() {
       <AppThemeProvider>
         <PaperProvider theme={paperTheme}>
           <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <Stack>
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-              <Stack.Screen name="home" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="login"
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen
-                name="register"
-                options={{
-                  headerShown: false,
-                }}
-              />
-<Stack.Screen
-                name="forgot-password"
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+            <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
+              <Stack.Screen name="index" />
+              <Stack.Screen name="login" />
+              <Stack.Screen name="register" />
+              <Stack.Screen name="forgot-password" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="home" />
+              <Stack.Screen name="products" options={{ animation: 'slide_from_right' }} />
+              <Stack.Screen name="product/[id]" options={{ animation: 'slide_from_right' }} />
+              <Stack.Screen name="profile" options={{ animation: 'slide_from_right' }} />
+              <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
             </Stack>
             <StatusBar style="auto" />
           </ThemeProvider>

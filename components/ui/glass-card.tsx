@@ -1,32 +1,38 @@
-import React from 'react';
-import { View, Platform, StyleSheet } from 'react-native';
+import React, { memo } from 'react';
+import { View, Platform, StyleSheet, AccessibilityProps } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { GLASS_COLORS, GLASS_EFFECTS } from '../../constants/theme-colors';
+import { GLASS_COLORS, GLASS_EFFECTS, SHADOWS } from '../../constants/theme-colors';
 
-interface GlassCardProps {
+interface GlassCardProps extends AccessibilityProps {
   children: React.ReactNode;
   className?: string;
   intensity?: number;
+  padding?: number;
 }
 
 /**
  * Frosted glass card with blur effect (iOS) or semi-transparent fallback (Android)
- *
- * @param intensity - Blur intensity (default: 15)
- * @param className - NativeWind classes for container
  */
-export function GlassCard({
+export const GlassCard = memo(function GlassCard({
   children,
   className = '',
   intensity = GLASS_EFFECTS.blurIntensity,
+  padding = 24,
+  ...a11yProps
 }: GlassCardProps) {
   const containerClasses = `rounded-[20px] overflow-hidden ${className}`;
 
   if (Platform.OS === 'ios') {
     return (
-      <View className={containerClasses} style={styles.container}>
+      <View
+        className={containerClasses}
+        style={styles.container}
+        accessible
+        accessibilityRole="none"
+        {...a11yProps}
+      >
         <BlurView intensity={intensity} tint="light" style={styles.blurView}>
-          <View className="p-6" style={styles.innerContainer}>
+          <View style={[styles.innerContainer, { padding }]}>
             {children}
           </View>
         </BlurView>
@@ -34,28 +40,26 @@ export function GlassCard({
     );
   }
 
-  // Android fallback: semi-transparent white with shadow
   return (
     <View
       className={containerClasses}
       style={[styles.container, styles.androidFallback]}
+      accessible
+      accessibilityRole="none"
+      {...a11yProps}
     >
-      <View className="p-6" style={styles.innerContainer}>
+      <View style={[styles.innerContainer, { padding }]}>
         {children}
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
     borderWidth: GLASS_EFFECTS.borderWidth,
     borderColor: GLASS_COLORS.surfaceBorder,
-    shadowColor: GLASS_EFFECTS.shadowColor,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: GLASS_EFFECTS.shadowOpacity,
-    shadowRadius: GLASS_EFFECTS.shadowRadius,
-    elevation: 8, // Android shadow
+    ...SHADOWS.lg,
   },
   blurView: {
     flex: 1,

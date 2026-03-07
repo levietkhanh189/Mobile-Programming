@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,88 +9,59 @@ import {
 import { Snackbar } from 'react-native-paper';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { GradientBackground } from '../../components/ui/gradient-background';
 import { GlassCard } from '../../components/ui/glass-card';
 import { GlassTextInput } from '../../components/ui/glass-text-input';
 import { AnimatedButton } from '../../components/ui/animated-button';
 import { authService } from '../../services/api';
 import { storageService } from '../../services/storage';
+import { TYPOGRAPHY } from '../../constants/theme-colors';
 
 const LoginScreen = () => {
   const router = useRouter();
-
-  // Form states
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  // UI states
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ visible: false, message: '' });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Validation states
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
-  // Validate email
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  // Validate form
-  const validateForm = () => {
-    const newErrors: { [key: string]: string } = {};
-
+  const validateForm = useCallback(() => {
+    const newErrors: Record<string, string> = {};
     if (!email) {
-      newErrors.email = 'Email là bắt buộc';
-    } else if (!validateEmail(email)) {
-      newErrors.email = 'Email không hợp lệ';
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = 'Invalid email format';
     }
-
     if (!password) {
-      newErrors.password = 'Mật khẩu là bắt buộc';
+      newErrors.password = 'Password is required';
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [email, password]);
 
-  // Đăng nhập
-  const handleLogin = async () => {
-    if (!validateForm()) {
-      return;
-    }
+  const handleLogin = useCallback(async () => {
+    if (!validateForm()) return;
 
     setLoading(true);
     try {
-      const response = await authService.login({
-        email,
-        password,
-      });
+      const response = await authService.login({ email, password });
 
-      // Lưu thông tin user và token vào storage
       if (response.user && response.token) {
         await storageService.saveAuthData(response.user, response.token);
       }
 
-      setSnackbar({
-        visible: true,
-        message: 'Đăng nhập thành công!',
-      });
-
-      // Chuyển về màn hình home sau 1s
-      setTimeout(() => {
-        router.replace('/home');
-      }, 1000);
+      setSnackbar({ visible: true, message: 'Login successful!' });
+      setTimeout(() => router.replace('/(tabs)'), 800);
     } catch (error: any) {
       setSnackbar({
         visible: true,
-        message: error.message || 'Đăng nhập thất bại',
+        message: error.message || 'Login failed',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [email, password, validateForm, router]);
 
   return (
     <GradientBackground>
@@ -103,26 +74,34 @@ const LoginScreen = () => {
           contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
           className="px-6"
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
-          <View className="items-center mb-8">
+          {/* Header with staggered animation */}
+          <Animated.View
+            entering={FadeInUp.duration(700).springify()}
+            className="items-center mb-10"
+            accessibilityRole="header"
+          >
+            <View className="w-20 h-20 rounded-full bg-white/15 items-center justify-center mb-5 border border-white/30">
+              <Text style={{ fontSize: 36 }}>🛍️</Text>
+            </View>
             <Text
-              style={{ fontFamily: 'Poppins_700Bold' }}
-              className="text-4xl text-white mb-2"
+              style={{ fontFamily: TYPOGRAPHY.fontFamily.poppins.bold }}
+              className="text-4xl text-white mb-2 text-center"
             >
-              Chào mừng trở lại
+              Welcome back
             </Text>
             <Text
-              style={{ fontFamily: 'OpenSans_400Regular' }}
-              className="text-base text-white/70"
+              style={{ fontFamily: TYPOGRAPHY.fontFamily.openSans.regular }}
+              className="text-base text-white/70 text-center"
             >
-              Đăng nhập để tiếp tục
+              Sign in to continue shopping
             </Text>
-          </View>
+          </Animated.View>
 
           {/* Glass Form Card */}
-          <Animated.View entering={FadeInDown.duration(600).delay(200)}>
-            <GlassCard>
+          <Animated.View entering={FadeInDown.duration(600).delay(200).springify()}>
+            <GlassCard accessibilityLabel="Login form">
               <GlassTextInput
                 label="Email"
                 value={email}
@@ -132,10 +111,11 @@ const LoginScreen = () => {
                 error={errors.email}
                 disabled={loading}
                 icon="email-outline"
+                accessibilityHint="Enter your email address"
               />
 
               <GlassTextInput
-                label="Mật khẩu"
+                label="Password"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -143,57 +123,60 @@ const LoginScreen = () => {
                 error={errors.password}
                 disabled={loading}
                 icon="lock-outline"
+                accessibilityHint="Enter your password"
               />
 
-              {/* Forgot password link */}
-              <View className="items-end mb-4 -mt-2">
+              <View className="items-end mb-4 -mt-1">
                 <AnimatedButton
                   variant="text"
-                  title="Quên mật khẩu?"
+                  title="Forgot password?"
                   onPress={() => router.push('/forgot-password')}
                   disabled={loading}
+                  accessibilityHint="Navigate to password reset"
                 />
               </View>
 
-              {/* Login button */}
               <AnimatedButton
                 variant="cta"
-                title="Đăng nhập"
+                title="Sign In"
                 onPress={handleLogin}
                 loading={loading}
                 disabled={loading}
+                accessibilityHint="Sign in to your account"
               />
 
               {/* Divider */}
               <View className="flex-row items-center my-6">
                 <View className="flex-1 h-[1px] bg-white/20" />
                 <Text
-                  style={{ fontFamily: 'OpenSans_400Regular' }}
-                  className="text-white/50 mx-4"
+                  style={{ fontFamily: TYPOGRAPHY.fontFamily.openSans.regular }}
+                  className="text-white/50 mx-4 text-sm"
                 >
-                  hoặc
+                  or
                 </Text>
                 <View className="flex-1 h-[1px] bg-white/20" />
               </View>
 
-              {/* Register options */}
               <Text
-                style={{ fontFamily: 'OpenSans_400Regular' }}
+                style={{ fontFamily: TYPOGRAPHY.fontFamily.openSans.regular }}
                 className="text-white/70 text-center mb-3"
               >
-                Chưa có tài khoản?
+                Don't have an account?
               </Text>
               <AnimatedButton
                 variant="outline"
-                title="Đăng ký"
+                title="Create Account"
                 onPress={() => router.push('/register')}
                 disabled={loading}
+                accessibilityHint="Navigate to registration"
               />
             </GlassCard>
           </Animated.View>
+
+          {/* Bottom spacing */}
+          <View className="h-8" />
         </ScrollView>
 
-        {/* Snackbar */}
         <Snackbar
           visible={snackbar.visible}
           onDismiss={() => setSnackbar({ ...snackbar, visible: false })}

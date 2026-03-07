@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { memo, useState, useCallback } from 'react';
 import { View, KeyboardTypeOptions } from 'react-native';
 import { TextInput, HelperText } from 'react-native-paper';
 import { GLASS_COLORS } from '../../constants/theme-colors';
@@ -15,16 +15,25 @@ interface GlassTextInputProps {
   disabled?: boolean;
   icon?: string;
   className?: string;
+  accessibilityHint?: string;
 }
 
+const GLASS_INPUT_THEME = {
+  colors: {
+    primary: GLASS_COLORS.primaryLight,
+    outline: 'rgba(255, 255, 255, 0.5)',
+    background: 'rgba(255, 255, 255, 0.15)',
+    onSurfaceVariant: 'rgba(255, 255, 255, 0.7)',
+    onSurface: GLASS_COLORS.white,
+    error: GLASS_COLORS.error,
+    placeholder: 'rgba(255, 255, 255, 0.6)',
+  },
+};
+
 /**
- * Glassmorphism-styled text input with error handling
- *
- * @param showToggle - Show eye icon for password visibility toggle
- * @param icon - Left icon name (MaterialCommunityIcons)
- * @param error - Error message to display below input
+ * Glassmorphism-styled text input with a11y and error handling
  */
-export function GlassTextInput({
+export const GlassTextInput = memo(function GlassTextInput({
   label,
   value,
   onChangeText,
@@ -36,20 +45,13 @@ export function GlassTextInput({
   disabled,
   icon,
   className = '',
+  accessibilityHint,
 }: GlassTextInputProps) {
   const [showPassword, setShowPassword] = useState(false);
 
-  const glassTheme = {
-    colors: {
-      primary: GLASS_COLORS.primary,
-      outline: 'rgba(255, 255, 255, 0.5)',
-      background: 'rgba(255, 255, 255, 0.15)',
-      onSurfaceVariant: 'rgba(255, 255, 255, 0.7)', // label color
-      onSurface: GLASS_COLORS.white, // text color
-      error: GLASS_COLORS.error,
-      placeholder: 'rgba(255, 255, 255, 0.6)',
-    },
-  };
+  const togglePassword = useCallback(() => {
+    setShowPassword(prev => !prev);
+  }, []);
 
   return (
     <View className={`mb-1 ${className}`}>
@@ -63,13 +65,13 @@ export function GlassTextInput({
         secureTextEntry={secureTextEntry && !showPassword}
         disabled={disabled}
         error={!!error}
-        theme={glassTheme}
+        theme={GLASS_INPUT_THEME}
         style={{
-          minHeight: 48,
-          backgroundColor: 'rgba(255, 255, 255, 0.15)',
+          minHeight: 50,
+          backgroundColor: 'rgba(255, 255, 255, 0.12)',
         }}
         outlineStyle={{
-          borderRadius: 12,
+          borderRadius: 14,
           borderWidth: 1.5,
         }}
         textColor={GLASS_COLORS.white}
@@ -78,11 +80,14 @@ export function GlassTextInput({
           secureTextEntry && showToggle ? (
             <TextInput.Icon
               icon={showPassword ? 'eye-off' : 'eye'}
-              onPress={() => setShowPassword(!showPassword)}
+              onPress={togglePassword}
               color="rgba(255, 255, 255, 0.7)"
+              accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
             />
           ) : undefined
         }
+        accessibilityLabel={label}
+        accessibilityHint={accessibilityHint || (error ? `Error: ${error}` : undefined)}
       />
       {error ? (
         <HelperText
@@ -95,4 +100,4 @@ export function GlassTextInput({
       ) : null}
     </View>
   );
-}
+});

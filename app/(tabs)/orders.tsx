@@ -1,118 +1,196 @@
-import React from 'react';
-import { View, Text, FlatList, SafeAreaView, Alert, RefreshControl } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, Text, FlatList, SafeAreaView, Alert, RefreshControl, StyleSheet } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { orderService, Order } from '@/services/api';
-import { Card, Divider, Button } from 'react-native-paper';
+import { Button } from 'react-native-paper';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { GLASS_COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '@/constants/theme-colors';
+
+const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
+  Pending: { bg: '#FEF3C7', text: '#92400E' },
+  Confirmed: { bg: '#DBEAFE', text: '#1E40AF' },
+  Processing: { bg: '#EDE9FE', text: '#6D28D9' },
+  Shipping: { bg: '#E0E7FF', text: '#3730A3' },
+  Delivered: { bg: '#D1FAE5', text: '#065F46' },
+  Cancelled: { bg: '#FEE2E2', text: '#991B1B' },
+};
 
 export default function OrderHistoryScreen() {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    const { data, isLoading, refetch, isRefetching } = useQuery({
-        queryKey: ['orders'],
-        queryFn: orderService.getOrderHistory,
-    });
+  const { data, isLoading, refetch, isRefetching } = useQuery({
+    queryKey: ['orders'],
+    queryFn: orderService.getOrderHistory,
+  });
 
-    const cancelMutation = useMutation({
-        mutationFn: orderService.cancelOrder,
-        onSuccess: (res) => {
-            if (res.success) {
-                Alert.alert('Success', 'Order cancelled');
-                queryClient.invalidateQueries({ queryKey: ['orders'] });
-            } else {
-                Alert.alert('Error', res.message);
-            }
-        },
-        onError: (error: any) => {
-            Alert.alert('Error', error.message || 'Failed to cancel order');
-        }
-    });
+  const cancelMutation = useMutation({
+    mutationFn: orderService.cancelOrder,
+    onSuccess: (res) => {
+      if (res.success) {
+        Alert.alert('Success', 'Order cancelled');
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
+      } else {
+        Alert.alert('Error', res.message);
+      }
+    },
+    onError: (error: any) => {
+      Alert.alert('Error', error.message || 'Failed to cancel order');
+    },
+  });
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'Pending': return 'bg-yellow-100 text-yellow-700';
-            case 'Confirmed': return 'bg-blue-100 text-blue-700';
-            case 'Processing': return 'bg-purple-100 text-purple-700';
-            case 'Shipping': return 'bg-indigo-100 text-indigo-700';
-            case 'Delivered': return 'bg-green-100 text-green-700';
-            case 'Cancelled': return 'bg-red-100 text-red-700';
-            default: return 'bg-gray-100 text-gray-700';
-        }
-    };
+  const orders = data?.data || [];
 
-    const orders = data?.data || [];
-
-    const renderOrder = ({ item }: { item: Order }) => {
-        const canCancel = (item.status === 'Pending' || item.status === 'Confirmed');
-
-        return (
-            <Card className="m-4 bg-white" elevation={1}>
-                <Card.Title
-                    title={`Order #${item.id.slice(-6)}`}
-                    subtitle={new Date(item.createdAt).toLocaleString()}
-                    right={(props) => (
-                        <View className={`px-2 py-1 rounded mr-4 ${getStatusColor(item.status).split(' ')[0]}`}>
-                            <Text className={`text-xs font-bold ${getStatusColor(item.status).split(' ')[1]}`}>
-                                {item.status.toUpperCase()}
-                            </Text>
-                        </View>
-                    )}
-                />
-                <Divider />
-                <Card.Content className="py-3">
-                    {item.items.map((prod, idx) => (
-                        <View key={idx} className="flex-row justify-between mb-1">
-                            <Text className="text-gray-600 flex-1">{prod.name} x{prod.quantity}</Text>
-                            <Text className="font-medium">$ {(prod.price * prod.quantity).toFixed(2)}</Text>
-                        </View>
-                    ))}
-                    <View className="flex-row justify-between mt-3">
-                        <Text className="font-bold text-lg">Total</Text>
-                        <Text className="font-bold text-lg text-blue-600">$ {item.totalAmount.toFixed(2)}</Text>
-                    </View>
-                </Card.Content>
-                {canCancel && (
-                    <>
-                        <Divider />
-                        <View className="p-2 items-end">
-                            <Button
-                                mode="text"
-                                textColor="#ef4444"
-                                onPress={() => cancelMutation.mutate(item.id)}
-                                loading={cancelMutation.isPending}
-                            >
-                                Cancel Order
-                            </Button>
-                        </View>
-                    </>
-                )}
-            </Card>
-        );
-    };
+  const renderOrder = useCallback(({ item, index }: { item: Order; index: number }) => {
+    const canCancel = item.status === 'Pending' || item.status === 'Confirmed';
+    const statusStyle = STATUS_STYLES[item.status] || STATUS_STYLES.Pending;
 
     return (
-        <SafeAreaView className="flex-1 bg-gray-50">
-            <View className="p-4 bg-white border-bottom border-gray-200">
-                <Text className="text-2xl font-bold">Order History</Text>
-            </View>
+      <Animated.View
+        entering={FadeInDown.duration(400).delay(index * 80)}
+        style={styles.card}
+        accessibilityRole="summary"
+        accessibilityLabel={`Order ${item.id.slice(-6)}, status ${item.status}, total $${item.totalAmount.toFixed(2)}`}
+      >
+        <View style={styles.cardHeader}>
+          <View>
+            <Text style={styles.orderId}>Order #{item.id.slice(-6)}</Text>
+            <Text style={styles.orderDate}>
+              {new Date(item.createdAt).toLocaleDateString()}
+            </Text>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+            <Text style={[styles.statusText, { color: statusStyle.text }]}>
+              {item.status}
+            </Text>
+          </View>
+        </View>
 
-            {isLoading ? (
-                <View className="flex-1 justify-center items-center">
-                    <Text>Loading orders...</Text>
-                </View>
-            ) : orders.length === 0 ? (
-                <View className="flex-1 justify-center items-center p-10">
-                    <Text className="text-gray-500 text-center">No orders yet.</Text>
-                </View>
-            ) : (
-                <FlatList
-                    data={orders}
-                    renderItem={renderOrder}
-                    keyExtractor={(item) => item.id}
-                    refreshControl={
-                        <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
-                    }
-                />
-            )}
-        </SafeAreaView>
+        <View style={styles.divider} />
+
+        {item.items.map((prod, idx) => (
+          <View key={idx} style={styles.itemRow}>
+            <Text style={styles.itemName} numberOfLines={1}>
+              {prod.name} x{prod.quantity}
+            </Text>
+            <Text style={styles.itemPrice}>
+              ${(prod.price * prod.quantity).toFixed(2)}
+            </Text>
+          </View>
+        ))}
+
+        <View style={styles.totalRow}>
+          <Text style={styles.totalLabel}>Total</Text>
+          <Text style={styles.totalAmount}>${item.totalAmount.toFixed(2)}</Text>
+        </View>
+
+        {canCancel && (
+          <Button
+            mode="text"
+            textColor={GLASS_COLORS.error}
+            onPress={() => cancelMutation.mutate(item.id)}
+            loading={cancelMutation.isPending}
+            style={styles.cancelBtn}
+            accessibilityLabel="Cancel this order"
+          >
+            Cancel Order
+          </Button>
+        )}
+      </Animated.View>
     );
+  }, [cancelMutation]);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Order History</Text>
+      </View>
+
+      {isLoading ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyText}>Loading orders...</Text>
+        </View>
+      ) : orders.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyText}>No orders yet</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={orders}
+          renderItem={renderOrder}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              tintColor={GLASS_COLORS.primary}
+            />
+          }
+        />
+      )}
+    </SafeAreaView>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: GLASS_COLORS.backgroundDark },
+  header: {
+    paddingHorizontal: SPACING.screenPadding, paddingVertical: SPACING.md,
+    backgroundColor: GLASS_COLORS.white, ...SHADOWS.sm,
+  },
+  headerTitle: {
+    fontSize: TYPOGRAPHY.fontSize['2xl'], fontFamily: TYPOGRAPHY.fontFamily.poppins.bold,
+    color: GLASS_COLORS.text,
+  },
+  listContent: { padding: SPACING.md, paddingBottom: 100 },
+  card: {
+    backgroundColor: GLASS_COLORS.white, borderRadius: 16, padding: SPACING.md,
+    marginBottom: 14, borderWidth: 1, borderColor: GLASS_COLORS.cardBorder, ...SHADOWS.sm,
+  },
+  cardHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+  },
+  orderId: {
+    fontSize: TYPOGRAPHY.fontSize.base, fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
+    color: GLASS_COLORS.text,
+  },
+  orderDate: {
+    fontSize: TYPOGRAPHY.fontSize.xs, color: GLASS_COLORS.textMuted, marginTop: 2,
+    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
+  },
+  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  statusText: { fontSize: TYPOGRAPHY.fontSize.xs, fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold },
+  divider: {
+    height: 1, backgroundColor: GLASS_COLORS.divider, marginVertical: SPACING.sm,
+  },
+  itemRow: {
+    flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4,
+  },
+  itemName: {
+    flex: 1, fontSize: TYPOGRAPHY.fontSize.sm, color: GLASS_COLORS.textMuted,
+    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
+  },
+  itemPrice: {
+    fontSize: TYPOGRAPHY.fontSize.sm, fontFamily: TYPOGRAPHY.fontFamily.poppins.medium,
+    color: GLASS_COLORS.text,
+  },
+  totalRow: {
+    flexDirection: 'row', justifyContent: 'space-between', marginTop: SPACING.sm,
+    paddingTop: SPACING.sm, borderTopWidth: 1, borderTopColor: GLASS_COLORS.divider,
+  },
+  totalLabel: {
+    fontSize: TYPOGRAPHY.fontSize.base, fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
+    color: GLASS_COLORS.text,
+  },
+  totalAmount: {
+    fontSize: TYPOGRAPHY.fontSize.lg, fontFamily: TYPOGRAPHY.fontFamily.poppins.bold,
+    color: GLASS_COLORS.primary,
+  },
+  cancelBtn: { alignSelf: 'flex-end', marginTop: 4 },
+  emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.xl },
+  emptyText: {
+    fontSize: TYPOGRAPHY.fontSize.base, color: GLASS_COLORS.textMuted,
+    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
+  },
+});
