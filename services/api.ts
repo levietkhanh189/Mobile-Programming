@@ -273,6 +273,17 @@ export const userService = {
       throw error.response?.data || { success: false, message: 'Lỗi khi xác thực SĐT' };
     }
   },
+
+  getWishlist: () => api.get('/user/me/wishlist'),
+  addWishlist: (productId: number) => api.post('/user/me/wishlist', { productId }),
+  removeWishlist: (productId: number) => api.delete(`/user/me/wishlist/${productId}`),
+  getStats: () => api.get('/user/me/stats'),
+  getAddresses: () => api.get('/user/me/addresses'),
+  createAddress: (data: { label?: string; fullName: string; phone: string; address: string; city: string }) =>
+    api.post('/user/me/addresses', data),
+  updateAddress: (id: number, data: object) => api.put(`/user/me/addresses/${id}`, data),
+  deleteAddress: (id: number) => api.delete(`/user/me/addresses/${id}`),
+  setDefaultAddress: (id: number) => api.patch(`/user/me/addresses/${id}/default`),
 };
 
 export const productService = {
@@ -320,10 +331,20 @@ export const productService = {
       throw error.response?.data || { success: false, message: 'Lỗi khi lấy danh sách sản phẩm giảm giá' };
     }
   },
+
+  getRelatedProducts: (productId: number) =>
+    api.get(`/products/${productId}/related`),
+};
+
+export const reviewService = {
+  getProductReviews: (productId: number) =>
+    api.get(`/products/${productId}/reviews`),
+  createReview: (data: { productId: number; rating: number; comment?: string }) =>
+    api.post('/reviews', data),
 };
 
 export const orderService = {
-  checkout: async (data: { items: { productId: number; quantity: number }[]; shippingAddress: string }): Promise<ApiResponse<Order>> => {
+  checkout: async (data: { items: { productId: number; quantity: number }[]; shippingAddress?: string; addressId?: number }): Promise<ApiResponse<Order>> => {
     try {
       const response = await api.post('/orders/checkout', data);
       return response.data;

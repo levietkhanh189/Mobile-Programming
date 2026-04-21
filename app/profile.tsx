@@ -6,7 +6,15 @@ import { storageService } from '../services/storage';
 import { authService, userService, User } from '../services/api';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ProfileDialogs, DialogType } from '@/components/profile/profile-dialogs';
+import ProfileStatsSection from '../screens/profile/profile-stats-section';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme-colors';
+import { Address } from '@/components/profile/address-section';
+
+interface StatGroup { count: number; total: number }
+interface Stats {
+  delivered: StatGroup; pending: StatGroup; cancelled: StatGroup;
+  totalSpent: number; totalOrders: number;
+}
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -21,9 +29,18 @@ export default function ProfileScreen() {
   const [newPhone, setNewPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [dialog, setDialog] = useState<{ type: DialogType; visible: boolean }>({ type: 'none', visible: false });
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [addresses, setAddresses] = useState<Address[]>([]);
 
   const showSnackbar = useCallback((msg: string) => setSnackbar({ visible: true, message: msg }), []);
   const closeDialog = useCallback(() => setDialog({ type: 'none', visible: false }), []);
+
+  const fetchAddresses = useCallback(async () => {
+    try {
+      const res = await userService.getAddresses();
+      setAddresses(res.data.addresses ?? []);
+    } catch { /* addresses unavailable, keep empty */ }
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -32,10 +49,13 @@ export default function ProfileScreen() {
         if (cached) { setUser(cached); setFullName(cached.fullName); }
         const res = await authService.getUserProfile();
         if (res.user) { setUser(res.user); setFullName(res.user.fullName); await storageService.saveUser(res.user); }
+
+        const [statsRes] = await Promise.allSettled([userService.getStats()]);
+        if (statsRes.status === 'fulfilled') setStats(statsRes.value.data.stats ?? statsRes.value.data); await fetchAddresses();
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     })();
-  }, []);
+  }, [fetchAddresses]);
 
   const handleUpdateProfile = useCallback(async () => {
     if (!fullName.trim()) return showSnackbar('Please enter your name');
@@ -109,6 +129,13 @@ export default function ProfileScreen() {
           <Text style={styles.userName}>{user?.fullName}</Text>
           <Text style={styles.userEmail}>{user?.email}</Text>
         </View>
+
+        <ProfileStatsSection
+          points={(user as any)?.points ?? 0}
+          stats={stats}
+          addresses={addresses}
+          onAddressesChange={fetchAddresses}
+        />
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
