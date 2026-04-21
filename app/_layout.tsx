@@ -22,6 +22,8 @@ import '../global.css';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useGlassmorphismTheme } from '@/hooks/use-glassmorphism-theme';
+import { connectSocket, disconnectSocket } from '../services/socket';
+import { useAuthStore } from '../stores/authStore';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -30,6 +32,7 @@ const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const token = useAuthStore((s) => s.token);
 
   // Load custom fonts
   const [fontsLoaded] = useFonts({
@@ -43,6 +46,15 @@ export default function RootLayout() {
 
   // Get custom theme (must be called before any early returns)
   const paperTheme = useGlassmorphismTheme();
+
+  // Manage socket connection based on auth token
+  useEffect(() => {
+    if (token) {
+      connectSocket(token);
+    } else {
+      disconnectSocket();
+    }
+  }, [token]);
 
   // Hide splash screen when fonts are loaded
   useEffect(() => {

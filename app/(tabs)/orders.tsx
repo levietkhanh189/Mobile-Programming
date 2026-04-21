@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { orderService, Order } from '@/services/api';
 import { Button } from 'react-native-paper';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme-colors';
+import { useOrderNotifications } from '../../hooks/use-order-notifications';
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   Pending: { bg: '#FEF3C7', text: '#92400E' },
@@ -15,6 +16,7 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 export default function OrderHistoryScreen() {
+  useOrderNotifications();
   const queryClient = useQueryClient();
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['orders'],

@@ -1,29 +1,65 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { productService, Product } from '../../services/api';
+import { Ionicons } from '@expo/vector-icons';
+import { productService, reviewService, Product } from '../../services/api';
 import { useCartStore } from '../../stores/cartStore';
+import { useFavoritesStore } from '../../stores/favoritesStore';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme-colors';
+import ProductDetailContent from '../../screens/product/product-detail-content';
+
+interface ReviewState {
+  reviews: Array<{ id: number; rating: number; comment?: string; createdAt: string; user?: { fullName: string } }>;
+  averageRating: number;
+  totalReviews: number;
+  alreadyReviewed: boolean;
+}
+
+interface RelatedProduct {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  discountPercentage?: number;
+}
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const addItem = useCartStore((state) => state.addItem);
+  const { isFavorite, addFavorite, removeFavorite } = useFavoritesStore();
+
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [added, setAdded] = useState(false);
+  const [reviews, setReviews] = useState<ReviewState>({
+    reviews: [], averageRating: 0, totalReviews: 0, alreadyReviewed: false,
+  });
+  const [related, setRelated] = useState<RelatedProduct[]>([]);
+
+  const productId = Number(id);
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await productService.getProductById(Number(id));
+        const res = await productService.getProductById(productId);
         if (res.success && res.data) setProduct(res.data);
-      } catch (e) { console.error('Error:', e); }
-      finally { setLoading(false); }
+
+        const [reviewsRes, relatedRes] = await Promise.allSettled([
+          reviewService.getProductReviews(productId),
+          productService.getRelatedProducts(productId),
+        ]);
+        if (reviewsRes.status === 'fulfilled') setReviews(reviewsRes.value.data);
+        if (relatedRes.status === 'fulfilled') setRelated(relatedRes.value.data.products ?? []);
+      } catch (e) {
+        console.error('ProductDetail error:', e);
+      } finally {
+        setLoading(false);
+      }
     })();
-  }, [id]);
+  }, [productId]);
 
   const handleAddToCart = useCallback(() => {
     if (!product) return;
@@ -31,6 +67,31 @@ export default function ProductDetailScreen() {
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   }, [product, addItem]);
+
+  const handleToggleFavorite = useCallback(() => {
+    if (!product) return;
+    if (isFavorite(product.id)) {
+      removeFavorite(product.id);
+    } else {
+      addFavorite({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        category: product.category,
+      });
+    }
+  }, [product, isFavorite, addFavorite, removeFavorite]);
+
+  const handleReviewSuccess = useCallback((pointsEarned: number) => {
+    // Refresh reviews after successful submission
+    reviewService.getProductReviews(productId)
+      .then(res => setReviews(res.data))
+      .catch(() => {});
+    if (pointsEarned > 0) {
+      Alert.alert('Điểm thưởng', `Bạn nhận được +${pointsEarned} điểm!`);
+    }
+  }, [productId]);
 
   if (loading) {
     return <View style={styles.centered}><ActivityIndicator size="large" color={COLORS.primary} /></View>;
@@ -49,48 +110,27 @@ export default function ProductDetailScreen() {
     );
   }
 
+  const liked = isFavorite(product.id);
+
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()} accessibilityLabel="Go back">
           <IconSymbol name="chevron.left" size={24} color={COLORS.white} />
         </TouchableOpacity>
         <Text style={styles.topBarTitle} numberOfLines={1}>{product.name}</Text>
-        <View style={{ width: 24 }} />
+        <TouchableOpacity onPress={handleToggleFavorite} accessibilityLabel={liked ? 'Remove from favorites' : 'Add to favorites'}>
+          <Ionicons name={liked ? 'heart' : 'heart-outline'} size={24} color={liked ? '#ef4444' : '#ffffff'} />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <Image source={{ uri: product.image }} style={styles.heroImage} resizeMode="contain" />
+      <ProductDetailContent
+        product={product}
+        reviews={reviews}
+        related={related}
+        onReviewSuccess={handleReviewSuccess}
+      />
 
-        <View style={styles.infoSection}>
-          {product.discountPercentage > 0 && (
-            <View style={styles.dealRow}>
-              <View style={styles.dealBadge}>
-                <Text style={styles.dealBadgeText}>{product.discountPercentage}% off</Text>
-              </View>
-              <Text style={styles.dealLabel}>Limited time deal</Text>
-            </View>
-          )}
-
-          <Text style={styles.price}>${product.price.toFixed(2)}</Text>
-          <Text style={styles.name}>{product.name}</Text>
-
-          <View style={styles.metaRow}>
-            <Text style={styles.category}>{product.category}</Text>
-            <Text style={styles.sold}>{product.soldCount} bought</Text>
-          </View>
-
-          <View style={styles.divider} />
-
-          <Text style={styles.sectionTitle}>About this item</Text>
-          <Text style={styles.description}>{product.description}</Text>
-        </View>
-
-        <View style={{ height: 100 }} />
-      </ScrollView>
-
-      {/* Bottom add to cart */}
       <View style={styles.bottomBar}>
         <TouchableOpacity
           style={[styles.addBtn, added && styles.addedBtn]}
@@ -119,53 +159,6 @@ const styles = StyleSheet.create({
     flex: 1, textAlign: 'center', fontSize: TYPOGRAPHY.fontSize.base,
     fontFamily: TYPOGRAPHY.fontFamily.poppins.medium, color: COLORS.white,
     marginHorizontal: SPACING.sm,
-  },
-  heroImage: {
-    width: '100%', height: 300, backgroundColor: COLORS.white,
-  },
-  infoSection: {
-    padding: SPACING.screenPadding,
-  },
-  dealRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: SPACING.sm,
-  },
-  dealBadge: {
-    backgroundColor: COLORS.error, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 2,
-  },
-  dealBadgeText: {
-    color: COLORS.white, fontSize: TYPOGRAPHY.fontSize.sm,
-    fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
-  },
-  dealLabel: {
-    fontSize: TYPOGRAPHY.fontSize.sm, color: COLORS.error,
-    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
-  },
-  price: {
-    fontSize: TYPOGRAPHY.fontSize['4xl'], fontFamily: TYPOGRAPHY.fontFamily.poppins.bold,
-    color: COLORS.priceWhole,
-  },
-  name: {
-    fontSize: TYPOGRAPHY.fontSize.lg, fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
-    color: COLORS.text, marginTop: 4, lineHeight: 22,
-  },
-  metaRow: {
-    flexDirection: 'row', gap: 16, marginTop: SPACING.sm,
-  },
-  category: {
-    fontSize: TYPOGRAPHY.fontSize.sm, color: COLORS.link,
-    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
-  },
-  sold: {
-    fontSize: TYPOGRAPHY.fontSize.sm, color: COLORS.textSecondary,
-  },
-  divider: { height: 1, backgroundColor: COLORS.divider, marginVertical: SPACING.lg },
-  sectionTitle: {
-    fontSize: TYPOGRAPHY.fontSize.lg, fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
-    color: COLORS.text, marginBottom: SPACING.sm,
-  },
-  description: {
-    fontSize: TYPOGRAPHY.fontSize.base, lineHeight: 22, color: COLORS.textSecondary,
-    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
   },
   bottomBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
