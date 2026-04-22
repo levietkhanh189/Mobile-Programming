@@ -14,6 +14,7 @@ import ShippingMethodPicker, { SHIPPING_METHODS } from '@/components/checkout/sh
 import PaymentMethodPicker, { PaymentMethodId } from '@/components/checkout/payment-method-picker';
 import PromoCodeInput, { PromoResult } from '@/components/checkout/promo-code-input';
 import OrderSummaryBreakdown from '@/components/checkout/order-summary-breakdown';
+import AddressFormModal from '@/components/profile/address-form-modal';
 
 export default function CheckoutContent() {
   const { selectedItems, selectedTotal, selectedCount, removeSelected } = useCartStore();
@@ -21,7 +22,7 @@ export default function CheckoutContent() {
   // Address state
   const [addresses, setAddresses] = useState<CartAddress[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
-  const [manualAddress, setManualAddress] = useState('');
+  const [addressModalVisible, setAddressModalVisible] = useState(false);
 
   // Shipping / payment / promo
   const [shippingMethodId, setShippingMethodId] = useState('standard');
@@ -30,23 +31,35 @@ export default function CheckoutContent() {
 
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    userService.getAddresses()
-      .then((r) => {
-        const list: CartAddress[] = r.data.addresses ?? [];
-        setAddresses(list);
-        const def = list.find((a) => a.isDefault);
-        if (def) setSelectedAddressId(def.id);
-      })
-      .catch(() => { /* manual input fallback */ });
+  // Reload addresses. If `selectNewest` is true, auto-select the highest-id entry (just created).
+  const loadAddresses = useCallback(async (selectNewest = false) => {
+    try {
+      const r = await userService.getAddresses();
+      const list: CartAddress[] = r.data.addresses ?? [];
+      setAddresses(list);
+      setSelectedAddressId((prev) => {
+        if (selectNewest && list.length > 0) {
+          return list.reduce((a, b) => (a.id > b.id ? a : b)).id;
+        }
+        if (prev && list.some((a) => a.id === prev)) return prev;
+        return list.find((a) => a.isDefault)?.id ?? list[0]?.id ?? null;
+      });
+    } catch {
+      setAddresses([]);
+      setSelectedAddressId(null);
+    }
   }, []);
+
+  useEffect(() => {
+    loadAddresses();
+  }, [loadAddresses]);
 
   const selectedMethod = SHIPPING_METHODS.find((m) => m.id === shippingMethodId)!;
   const shippingFee = selectedMethod.fee;
   const subtotal = selectedTotal();
   const items = selectedItems();
 
-  const hasAddress = selectedAddressId !== null || manualAddress.trim().length > 0;
+  const hasAddress = selectedAddressId !== null;
   const canPlaceOrder = items.length > 0 && hasAddress;
 
   const handlePlaceOrder = useCallback(async () => {
@@ -60,9 +73,7 @@ export default function CheckoutContent() {
       const backendPaymentMethod = paymentMethod === 'sepay' ? 'SEPAY' : 'COD';
       const payload = {
         items: items.map((i) => ({ productId: i.id, quantity: i.quantity })),
-        ...(selectedAddressId
-          ? { addressId: selectedAddressId }
-          : { shippingAddress: manualAddress.trim() }),
+        addressId: selectedAddressId!,
         shippingMethod: shippingMethodId,
         paymentMethod: backendPaymentMethod,
         promoCode: promoResult?.code ?? undefined,
@@ -85,7 +96,7 @@ export default function CheckoutContent() {
     } finally {
       setLoading(false);
     }
-  }, [canPlaceOrder, items, selectedAddressId, manualAddress, shippingMethodId, paymentMethod, promoResult, removeSelected]);
+  }, [canPlaceOrder, items, selectedAddressId, shippingMethodId, paymentMethod, promoResult, removeSelected]);
 
   if (items.length === 0) {
     return (
@@ -126,9 +137,8 @@ export default function CheckoutContent() {
           <AddressPicker
             addresses={addresses}
             selectedAddressId={selectedAddressId}
-            manualAddress={manualAddress}
             onSelectAddress={setSelectedAddressId}
-            onChangeManualAddress={setManualAddress}
+            onAddNewAddress={() => setAddressModalVisible(true)}
           />
         </View>
 
@@ -171,6 +181,12 @@ export default function CheckoutContent() {
           }
         </TouchableOpacity>
       </View>
+
+      <AddressFormModal
+        visible={addressModalVisible}
+        onClose={() => setAddressModalVisible(false)}
+        onSuccess={() => loadAddresses(true)}
+      />
     </SafeAreaView>
   );
 }

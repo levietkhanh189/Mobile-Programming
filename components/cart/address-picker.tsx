@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme-colors';
 
@@ -16,19 +16,16 @@ export interface CartAddress {
 interface Props {
   addresses: CartAddress[];
   selectedAddressId: number | null;
-  manualAddress: string;
-  onSelectAddress: (id: number | null) => void;
-  onChangeManualAddress: (text: string) => void;
+  onSelectAddress: (id: number) => void;
+  onAddNewAddress: () => void;
 }
 
 export default function AddressPicker({
   addresses,
   selectedAddressId,
-  manualAddress,
   onSelectAddress,
-  onChangeManualAddress,
+  onAddNewAddress,
 }: Props) {
-  const usingManual = selectedAddressId === null;
   const hasSavedAddresses = addresses.length > 0;
 
   return (
@@ -41,7 +38,7 @@ export default function AddressPicker({
 
       {!hasSavedAddresses && (
         <Text style={styles.hintText}>
-          Bạn chưa có địa chỉ đã lưu. Vui lòng nhập địa chỉ giao hàng bên dưới.
+          Bạn chưa có địa chỉ đã lưu. Hãy tạo địa chỉ mới để đặt hàng.
         </Text>
       )}
 
@@ -78,35 +75,14 @@ export default function AddressPicker({
         );
       })}
 
-      {hasSavedAddresses && (
-        <TouchableOpacity
-          onPress={() => onSelectAddress(null)}
-          style={[styles.row, styles.manualToggle, usingManual && styles.rowSelected]}
-          accessibilityRole="radio"
-          accessibilityState={{ checked: usingManual }}
-        >
-          <View style={[styles.radio, usingManual && styles.radioSelected]}>
-            {usingManual && <View style={styles.radioDot} />}
-          </View>
-          <Text style={styles.manualLabel}>Sử dụng địa chỉ khác</Text>
-        </TouchableOpacity>
-      )}
-
-      {usingManual && (
-        <View style={styles.manualBox}>
-          <Text style={styles.manualHint}>
-            Nhập đầy đủ: số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố
-          </Text>
-          <TextInput
-            value={manualAddress}
-            onChangeText={onChangeManualAddress}
-            placeholder="VD: 123 Nguyễn Huệ, P. Bến Nghé, Q.1, TP.HCM"
-            placeholderTextColor={COLORS.textMuted}
-            style={styles.input}
-            multiline
-          />
-        </View>
-      )}
+      <TouchableOpacity
+        onPress={onAddNewAddress}
+        style={[styles.row, styles.addRow]}
+        accessibilityRole="button"
+      >
+        <IconSymbol name="plus" size={18} color={COLORS.primary} />
+        <Text style={styles.addLabel}>Thêm địa chỉ mới</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -147,8 +123,15 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     backgroundColor: '#FFF8F0',
   },
-  manualToggle: {
+  addRow: {
     borderStyle: 'dashed',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  addLabel: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: COLORS.primary,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.medium,
   },
   radio: {
     width: 20,
@@ -192,34 +175,5 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginTop: 2,
     lineHeight: 18,
-  },
-  manualLabel: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.text,
-    fontFamily: TYPOGRAPHY.fontFamily.poppins.medium,
-  },
-  manualBox: {
-    backgroundColor: '#FAFAFA',
-    borderRadius: 8,
-    padding: SPACING.sm,
-    marginTop: 4,
-  },
-  manualHint: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    color: COLORS.textMuted,
-    marginBottom: 6,
-    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-    borderRadius: 8,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.text,
-    backgroundColor: COLORS.white,
-    minHeight: 70,
-    textAlignVertical: 'top',
   },
 });

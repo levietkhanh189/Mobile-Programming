@@ -96,6 +96,14 @@ android {
         versionName "1.0.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
+
+        // Limit ABIs for faster local builds and smaller APK.
+        // arm64-v8a covers 99% of Android devices since 2018. Override with -Pabis=...
+        // (e.g. `-Pabis=arm64-v8a,armeabi-v7a`) to include 32-bit ARM.
+        def abisProp = (findProperty('abis') ?: 'arm64-v8a').toString()
+        ndk {
+            abiFilters abisProp.split(',').collect { it.trim() } as String[]
+        }
     }
     signingConfigs {
         debug {
