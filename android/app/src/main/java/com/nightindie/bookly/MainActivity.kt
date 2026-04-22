@@ -1,4 +1,4 @@
-package com.anonymous.BaiTapTuan1
+package com.nightindie.bookly
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

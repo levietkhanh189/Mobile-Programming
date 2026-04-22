@@ -1,15 +1,16 @@
 {
   "expo": {
-    "name": "Ecom",
-    "slug": "BaiTapTuan1",
+    "name": "Bookly",
+    "slug": "bookly-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "ecom",
+    "scheme": "bookly",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nightindie.bookly"
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +21,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.BaiTapTuan1"
+      "package": "com.nightindie.bookly"
     },
     "web": {
       "output": "static",
@@ -48,8 +49,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "01302a3a-358c-4194-9c9c-7510705f4d28"
+        "projectId": "88c673d8-37c8-4aa5-ac94-ac9a7ea175e2"
       }
-    }
+    },
+    "owner": "khanhtimo"
   }
 }

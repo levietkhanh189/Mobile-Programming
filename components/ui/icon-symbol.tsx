@@ -18,6 +18,42 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'chevron.left': 'chevron-left',
+  'chevron.up': 'keyboard-arrow-up',
+  'chevron.down': 'keyboard-arrow-down',
+  'person.circle.fill': 'account-circle',
+  'person.fill': 'person',
+  'cart.fill': 'shopping-cart',
+  'cart.badge.plus': 'add-shopping-cart',
+  'magnifyingglass': 'search',
+  'list.bullet.rectangle.fill': 'receipt-long',
+  'list.bullet': 'list',
+  'heart.fill': 'favorite',
+  'heart': 'favorite-border',
+  'star.fill': 'star',
+  'star': 'star-border',
+  'plus': 'add',
+  'minus': 'remove',
+  'trash.fill': 'delete',
+  'trash': 'delete-outline',
+  'xmark': 'close',
+  'checkmark': 'check',
+  'gear': 'settings',
+  'bell.fill': 'notifications',
+  'bell': 'notifications-none',
+  'square.and.arrow.up': 'share',
+  'arrow.right.square': 'logout',
+  'pencil': 'edit',
+  'location.fill': 'location-on',
+  'location': 'location-on',
+  'creditcard.fill': 'credit-card',
+  'creditcard': 'credit-card',
+  'bag.fill': 'shopping-bag',
+  'bag': 'shopping-bag',
+  'tag.fill': 'local-offer',
+  'tag': 'local-offer',
+  'eye': 'visibility',
+  'eye.slash': 'visibility-off',
 } as IconMapping;
 
 /**
@@ -37,5 +73,8 @@ export function IconSymbol({
   style?: StyleProp<TextStyle>;
   weight?: SymbolWeight;
 }) {
-  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
+  // Fallback to a visible placeholder if an SF Symbol name has no Material mapping yet,
+  // so missing mappings are obvious on Android instead of rendering blank.
+  const materialName = MAPPING[name] ?? 'help-outline';
+  return <MaterialIcons color={color} size={size} name={materialName} style={style} />;
 }
