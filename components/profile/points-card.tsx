@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme-colors';
 
 interface Props {
   points: number;
@@ -8,12 +9,37 @@ interface Props {
 
 export default function PointsCard({ points }: Props) {
   return (
-    <View className="mx-4 mb-4 bg-gradient-to-r from-amber-500/30 to-yellow-500/20 border border-amber-400/30 rounded-2xl p-4 flex-row items-center">
-      <Ionicons name="trophy" size={32} color="#f59e0b" />
-      <View className="ml-3">
-        <Text className="text-amber-400 text-2xl font-bold">{points.toLocaleString()}</Text>
-        <Text className="text-white/70 text-sm">Điểm tích lũy</Text>
+    <View style={styles.container}>
+      <Ionicons name="trophy" size={32} color={COLORS.primary} />
+      <View style={styles.body}>
+        <Text style={styles.points}>{points.toLocaleString()}</Text>
+        <Text style={styles.label}>Điểm tích lũy</Text>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: SPACING.screenPadding,
+    marginBottom: SPACING.md,
+    backgroundColor: '#FFF8F0',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    borderRadius: 8,
+    padding: SPACING.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  body: { marginLeft: SPACING.md },
+  points: {
+    fontSize: TYPOGRAPHY.fontSize['2xl'],
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.bold,
+    color: COLORS.warning,
+  },
+  label: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: COLORS.textSecondary,
+    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
+  },
+});

@@ -9,6 +9,7 @@ import { orderService, userService } from '@/services/api';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme-colors';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import AddressPicker, { CartAddress } from '@/components/cart/address-picker';
+import CartStepIndicator from '@/components/cart/cart-step-indicator';
 import ShippingMethodPicker, { SHIPPING_METHODS } from '@/components/checkout/shipping-method-picker';
 import PaymentMethodPicker, { PaymentMethodId } from '@/components/checkout/payment-method-picker';
 import PromoCodeInput, { PromoResult } from '@/components/checkout/promo-code-input';
@@ -109,6 +110,8 @@ export default function CheckoutContent() {
         <View style={styles.backBtn} />
       </View>
 
+      <CartStepIndicator current="checkout" />
+
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Address */}
         <View style={styles.sectionCard}>
@@ -153,7 +156,9 @@ export default function CheckoutContent() {
           {loading
             ? <ActivityIndicator color={COLORS.text} />
             : <Text style={[styles.placeOrderText, !canPlaceOrder && styles.placeOrderTextDisabled]}>
-                Đặt hàng ({selectedCount()} sản phẩm)
+                {!hasAddress
+                  ? 'Vui lòng chọn địa chỉ giao hàng'
+                  : `Đặt hàng (${selectedCount()} sản phẩm)`}
               </Text>
           }
         </TouchableOpacity>

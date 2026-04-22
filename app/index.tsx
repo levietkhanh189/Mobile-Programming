@@ -27,8 +27,8 @@ export default function IntroScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.content} accessibilityRole="header">
-        <Text style={styles.logo}>Indie Store</Text>
-        <Text style={styles.tagline}>Shop smart, live better</Text>
+        <Text style={styles.logo}>Bookly</Text>
+        <Text style={styles.tagline}>Đọc sách thông minh, sống tốt hơn</Text>
       </View>
       <ActivityIndicator
         size="small"

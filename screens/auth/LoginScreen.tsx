@@ -53,9 +53,9 @@ const LoginScreen = () => {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      {/* Amazon-style header bar */}
+      {/* App header bar */}
       <View style={styles.header}>
-        <Text style={styles.headerLogo}>Indie Store</Text>
+        <Text style={styles.headerLogo}>Bookly</Text>
       </View>
 
       <KeyboardAvoidingView
@@ -135,7 +135,7 @@ const LoginScreen = () => {
           {/* Divider */}
           <View style={styles.dividerRow}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>New to Indie Store?</Text>
+            <Text style={styles.dividerText}>New to Bookly?</Text>
             <View style={styles.dividerLine} />
           </View>
 

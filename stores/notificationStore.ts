@@ -33,8 +33,8 @@ const SEED_NOTIFICATIONS: Notification[] = [
   {
     id: 'seed-3',
     type: 'system',
-    title: 'Chào mừng bạn đến Indie Store',
-    body: 'Cảm ơn bạn đã tham gia. Khám phá hàng nghìn sản phẩm chất lượng.',
+    title: 'Chào mừng bạn đến Bookly',
+    body: 'Cảm ơn bạn đã tham gia. Khám phá hàng nghìn đầu sách chất lượng.',
     createdAt: new Date(Date.now() - 86400000).toISOString(),
     read: true,
   },

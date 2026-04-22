@@ -13,7 +13,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       {/* Amazon-style dark header */}
       <View style={styles.header}>
-        <Text style={styles.logo}>Indie Store</Text>
+        <Text style={styles.logo}>Bookly</Text>
         <View style={styles.headerActions}>
           {/* Bell icon with unread badge */}
           <TouchableOpacity

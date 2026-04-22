@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme-colors';
 
 interface StatGroup {
   count: number;
@@ -25,11 +26,11 @@ interface StatBoxProps {
 
 function StatBox({ icon, label, count, total, color }: StatBoxProps) {
   return (
-    <View className="flex-1 bg-white/10 rounded-xl p-3 items-center">
+    <View style={styles.box}>
       <Ionicons name={icon as any} size={20} color={color} />
-      <Text className="text-white font-bold text-lg mt-1">{count}</Text>
-      <Text className="text-white/60 text-xs text-center" numberOfLines={1}>{label}</Text>
-      <Text className="text-white/80 text-xs mt-1">{(total / 1000).toFixed(0)}k đ</Text>
+      <Text style={styles.boxCount}>{count}</Text>
+      <Text style={styles.boxLabel} numberOfLines={1}>{label}</Text>
+      <Text style={styles.boxTotal}>{(total / 1000).toFixed(0)}k đ</Text>
     </View>
   );
 }
@@ -40,17 +41,76 @@ interface Props {
 
 export default function SpendingStats({ stats }: Props) {
   return (
-    <View className="mx-4 mb-4">
-      <Text className="text-white font-bold text-base mb-3">Thống kê chi tiêu</Text>
-      <View className="flex-row gap-2 mb-3">
-        <StatBox icon="checkmark-circle" label="Đã giao" count={stats.delivered.count} total={stats.delivered.total} color="#22c55e" />
-        <StatBox icon="time" label="Chờ xử lý" count={stats.pending.count} total={stats.pending.total} color="#f59e0b" />
-        <StatBox icon="close-circle" label="Đã hủy" count={stats.cancelled.count} total={stats.cancelled.total} color="#ef4444" />
+    <View style={styles.container}>
+      <Text style={styles.title}>Thống kê chi tiêu</Text>
+      <View style={styles.row}>
+        <StatBox icon="checkmark-circle" label="Đã giao" count={stats.delivered.count} total={stats.delivered.total} color={COLORS.success} />
+        <StatBox icon="time" label="Chờ xử lý" count={stats.pending.count} total={stats.pending.total} color={COLORS.warning} />
+        <StatBox icon="close-circle" label="Đã hủy" count={stats.cancelled.count} total={stats.cancelled.total} color={COLORS.error} />
       </View>
-      <View className="bg-white/10 rounded-xl p-3 flex-row justify-between items-center">
-        <Text className="text-white/70">Tổng đã chi</Text>
-        <Text className="text-white font-bold">{stats.totalSpent.toLocaleString('vi-VN')}đ</Text>
+      <View style={styles.totalRow}>
+        <Text style={styles.totalLabel}>Tổng đã chi</Text>
+        <Text style={styles.totalValue}>{stats.totalSpent.toLocaleString('vi-VN')}đ</Text>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: SPACING.screenPadding,
+    marginBottom: SPACING.md,
+  },
+  title: {
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
+    color: COLORS.text,
+    marginBottom: SPACING.sm,
+  },
+  row: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.sm },
+  box: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+    borderRadius: 8,
+    padding: SPACING.sm,
+    alignItems: 'center',
+  },
+  boxCount: {
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.bold,
+    color: COLORS.text,
+    marginTop: 4,
+  },
+  boxLabel: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+  },
+  boxTotal: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    color: COLORS.textMuted,
+    marginTop: 2,
+  },
+  totalRow: {
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+    borderRadius: 8,
+    padding: SPACING.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  totalLabel: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: COLORS.textSecondary,
+    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
+  },
+  totalValue: {
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.bold,
+    color: COLORS.priceBig,
+  },
+});

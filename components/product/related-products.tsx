@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme-colors';
 
 interface RelatedProduct {
   id: number;
@@ -19,23 +20,24 @@ export default function RelatedProducts({ products }: Props) {
   if (!products.length) return null;
 
   return (
-    <View className="mt-6 mb-4">
-      <Text className="text-white text-lg font-bold mx-4 mb-3">Sản phẩm tương tự</Text>
+    <View style={styles.wrap}>
+      <Text style={styles.title}>Sản phẩm tương tự</Text>
       <FlatList
         data={products}
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}
-        keyExtractor={item => String(item.id)}
+        contentContainerStyle={styles.list}
+        keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() => router.push(`/product/${item.id}` as any)}
-            className="bg-white/10 rounded-xl overflow-hidden w-32"
+            style={styles.card}
+            accessibilityRole="button"
           >
-            <Image source={{ uri: item.image }} className="w-32 h-32" resizeMode="cover" />
-            <View className="p-2">
-              <Text className="text-white text-xs font-medium" numberOfLines={2}>{item.name}</Text>
-              <Text className="text-amber-400 text-xs font-bold mt-1">
+            <Image source={{ uri: item.image }} style={styles.image} resizeMode="cover" />
+            <View style={styles.body}>
+              <Text style={styles.name} numberOfLines={2}>{item.name}</Text>
+              <Text style={styles.price}>
                 {item.price.toLocaleString('vi-VN')}đ
               </Text>
             </View>
@@ -45,3 +47,36 @@ export default function RelatedProducts({ products }: Props) {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  wrap: { marginTop: SPACING.lg, marginBottom: SPACING.md },
+  title: {
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.bold,
+    color: COLORS.text,
+    marginHorizontal: SPACING.screenPadding,
+    marginBottom: SPACING.sm,
+  },
+  list: { paddingHorizontal: SPACING.screenPadding, gap: SPACING.sm },
+  card: {
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+    borderRadius: 8,
+    overflow: 'hidden',
+    width: 128,
+  },
+  image: { width: 128, height: 128, backgroundColor: COLORS.background },
+  body: { padding: SPACING.sm },
+  name: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.medium,
+    color: COLORS.text,
+  },
+  price: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.bold,
+    color: COLORS.priceBig,
+    marginTop: 4,
+  },
+});

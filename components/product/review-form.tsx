@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { reviewService } from '../../services/api';
+import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme-colors';
 
 interface Props {
   productId: number;
@@ -16,8 +17,8 @@ export default function ReviewForm({ productId, onSuccess, alreadyReviewed }: Pr
 
   if (alreadyReviewed) {
     return (
-      <View className="mx-4 mt-3 bg-white/10 rounded-xl p-3">
-        <Text className="text-white/60 text-center">&#10003; Bạn đã đánh giá sản phẩm này</Text>
+      <View style={styles.alreadyWrap}>
+        <Text style={styles.alreadyText}>✓ Bạn đã đánh giá sản phẩm này</Text>
       </View>
     );
   }
@@ -38,12 +39,12 @@ export default function ReviewForm({ productId, onSuccess, alreadyReviewed }: Pr
   };
 
   return (
-    <View className="mx-4 mt-4 bg-white/10 rounded-xl p-4">
-      <Text className="text-white font-bold mb-3">Viết đánh giá</Text>
-      <View className="flex-row mb-3">
-        {[1, 2, 3, 4, 5].map(s => (
-          <TouchableOpacity key={s} onPress={() => setRating(s)} className="mr-2">
-            <Ionicons name="star" size={28} color={s <= rating ? '#f59e0b' : '#ffffff40'} />
+    <View style={styles.container}>
+      <Text style={styles.title}>Viết đánh giá</Text>
+      <View style={styles.starsRow}>
+        {[1, 2, 3, 4, 5].map((s) => (
+          <TouchableOpacity key={s} onPress={() => setRating(s)} style={styles.star}>
+            <Ionicons name="star" size={28} color={s <= rating ? COLORS.star : COLORS.cardBorder} />
           </TouchableOpacity>
         ))}
       </View>
@@ -51,19 +52,81 @@ export default function ReviewForm({ productId, onSuccess, alreadyReviewed }: Pr
         value={comment}
         onChangeText={setComment}
         placeholder="Nhận xét (tuỳ chọn)..."
-        placeholderTextColor="rgba(255,255,255,0.4)"
+        placeholderTextColor={COLORS.textMuted}
         multiline
         numberOfLines={3}
-        className="text-white bg-white/10 rounded-lg p-3 mb-3"
-        style={{ textAlignVertical: 'top' }}
+        style={styles.input}
       />
       <TouchableOpacity
         onPress={submit}
         disabled={loading}
-        className="bg-blue-500 rounded-xl py-3 items-center"
+        style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
+        accessibilityRole="button"
       >
-        <Text className="text-white font-bold">{loading ? 'Đang gửi...' : 'Gửi đánh giá'}</Text>
+        <Text style={styles.submitText}>{loading ? 'Đang gửi...' : 'Gửi đánh giá'}</Text>
       </TouchableOpacity>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: SPACING.screenPadding,
+    marginTop: SPACING.md,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+    borderRadius: 8,
+    padding: SPACING.md,
+  },
+  title: {
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
+    color: COLORS.text,
+    marginBottom: SPACING.sm,
+  },
+  starsRow: { flexDirection: 'row', marginBottom: SPACING.sm },
+  star: { marginRight: SPACING.sm },
+  input: {
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+    borderRadius: 8,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: COLORS.text,
+    backgroundColor: COLORS.white,
+    minHeight: 80,
+    textAlignVertical: 'top',
+    marginBottom: SPACING.sm,
+  },
+  submitBtn: {
+    backgroundColor: COLORS.btnYellow,
+    borderWidth: 1,
+    borderColor: COLORS.btnYellowBorder,
+    borderRadius: 8,
+    paddingVertical: SPACING.md,
+    alignItems: 'center',
+  },
+  submitBtnDisabled: { opacity: 0.6 },
+  submitText: {
+    color: COLORS.text,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.medium,
+  },
+  alreadyWrap: {
+    marginHorizontal: SPACING.screenPadding,
+    marginTop: SPACING.sm,
+    backgroundColor: '#E6F5EE',
+    borderWidth: 1,
+    borderColor: COLORS.success,
+    borderRadius: 8,
+    padding: SPACING.md,
+  },
+  alreadyText: {
+    color: COLORS.success,
+    textAlign: 'center',
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontFamily: TYPOGRAPHY.fontFamily.openSans.regular,
+  },
+});

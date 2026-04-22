@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme-colors';
 
 export interface Address {
   id: number;
@@ -32,55 +33,134 @@ export default function AddressSection({ addresses, onAdd, onDelete, onSetDefaul
   };
 
   return (
-    <View className="mx-4 mb-4">
-      <View className="flex-row justify-between items-center mb-3">
-        <Text className="text-white font-bold text-base">Địa chỉ giao hàng</Text>
-        <TouchableOpacity onPress={onAdd} className="bg-blue-500/30 rounded-lg px-3 py-1">
-          <Text className="text-blue-400 text-sm">+ Thêm</Text>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Địa chỉ giao hàng</Text>
+        <TouchableOpacity onPress={onAdd} style={styles.addBtn} accessibilityRole="button">
+          <Text style={styles.addBtnText}>+ Thêm</Text>
         </TouchableOpacity>
       </View>
-      {addresses.map(addr => (
-        <View key={addr.id} className="bg-white/10 rounded-xl p-3 mb-2">
-          <View className="flex-row items-center mb-1">
-            <View className="bg-blue-500/30 rounded px-2 py-0.5 mr-2">
-              <Text className="text-blue-400 text-xs">{addr.label}</Text>
+
+      {addresses.map((addr) => (
+        <View key={addr.id} style={styles.card}>
+          <View style={styles.tagRow}>
+            <View style={styles.tag}>
+              <Text style={styles.tagText}>{addr.label}</Text>
             </View>
             {addr.isDefault && (
-              <View className="bg-green-500/30 rounded px-2 py-0.5">
-                <Text className="text-green-400 text-xs">Mặc định</Text>
+              <View style={[styles.tag, styles.tagDefault]}>
+                <Text style={[styles.tagText, styles.tagDefaultText]}>Mặc định</Text>
               </View>
             )}
           </View>
-          <Text className="text-white font-medium">{addr.fullName} · {addr.phone}</Text>
-          <Text className="text-white/70 text-sm mt-0.5">
+          <Text style={styles.name}>{addr.fullName} · {addr.phone}</Text>
+          <Text style={styles.addressText}>
             {addr.address}
             {addr.ward ? `, ${addr.ward}` : ''}
             {addr.district ? `, ${addr.district}` : ''}
             {addr.zipCode ? ` ${addr.zipCode}` : ''}
             {`, ${addr.city}`}
           </Text>
-          <View className="flex-row mt-2 gap-3 items-center">
+          <View style={styles.actions}>
             {!addr.isDefault && (
               <TouchableOpacity onPress={() => onSetDefault(addr.id)}>
-                <Text className="text-blue-400 text-xs">Đặt mặc định</Text>
+                <Text style={styles.actionLink}>Đặt mặc định</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity onPress={() => onEdit(addr)} className="flex-row items-center gap-1">
-              <Ionicons name="pencil-outline" size={13} color="#60a5fa" />
-              <Text className="text-blue-400 text-xs">Sửa</Text>
+            <TouchableOpacity onPress={() => onEdit(addr)} style={styles.actionWithIcon}>
+              <Ionicons name="pencil-outline" size={13} color={COLORS.link} />
+              <Text style={styles.actionLink}>Sửa</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => confirmDelete(addr.id)}>
-              <Text className="text-red-400 text-xs">Xóa</Text>
+              <Text style={[styles.actionLink, styles.deleteLink]}>Xóa</Text>
             </TouchableOpacity>
           </View>
         </View>
       ))}
+
       {addresses.length === 0 && (
-        <View className="py-4 items-center">
-          <Ionicons name="location-outline" size={32} color="rgba(255,255,255,0.3)" />
-          <Text className="text-white/50 mt-2">Chưa có địa chỉ nào</Text>
+        <View style={styles.empty}>
+          <Ionicons name="location-outline" size={32} color={COLORS.textMuted} />
+          <Text style={styles.emptyText}>Chưa có địa chỉ nào</Text>
         </View>
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: SPACING.screenPadding,
+    marginBottom: SPACING.md,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  title: {
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
+    color: COLORS.text,
+  },
+  addBtn: {
+    backgroundColor: COLORS.btnYellow,
+    borderWidth: 1,
+    borderColor: COLORS.btnYellowBorder,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  addBtnText: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.medium,
+    color: COLORS.text,
+  },
+  card: {
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+    borderRadius: 8,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+  },
+  tagRow: { flexDirection: 'row', gap: 6, marginBottom: 4 },
+  tag: {
+    backgroundColor: '#E6F4F1',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  tagText: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    color: COLORS.link,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.medium,
+  },
+  tagDefault: { backgroundColor: '#E6F5EE' },
+  tagDefaultText: { color: COLORS.success },
+  name: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.medium,
+    color: COLORS.text,
+  },
+  addressText: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, marginTop: SPACING.sm },
+  actionWithIcon: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  actionLink: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    color: COLORS.link,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.medium,
+  },
+  deleteLink: { color: COLORS.error },
+  empty: { paddingVertical: SPACING.lg, alignItems: 'center' },
+  emptyText: {
+    color: COLORS.textMuted,
+    marginTop: SPACING.sm,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+  },
+});
