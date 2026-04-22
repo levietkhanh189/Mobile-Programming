@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme-colors';
 
-export type PaymentMethodId = 'cod' | 'bank_transfer' | 'momo';
+export type PaymentMethodId = 'cod' | 'sepay' | 'momo';
 
 interface PaymentMethod {
   id: PaymentMethodId;
@@ -13,7 +13,7 @@ interface PaymentMethod {
 
 const PAYMENT_METHODS: PaymentMethod[] = [
   { id: 'cod', name: 'Thanh toán khi nhận hàng', description: 'COD', available: true },
-  { id: 'bank_transfer', name: 'Chuyển khoản ngân hàng', description: 'Sắp ra mắt', available: false },
+  { id: 'sepay', name: 'SePay (VietQR / Chuyển khoản)', description: 'Sandbox', available: true },
   { id: 'momo', name: 'Ví Momo', description: 'Sắp ra mắt', available: false },
 ];
 

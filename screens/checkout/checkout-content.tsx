@@ -56,18 +56,26 @@ export default function CheckoutContent() {
     }
     setLoading(true);
     try {
+      // Backend expects 'COD' | 'SEPAY' uppercase.
+      const backendPaymentMethod = paymentMethod === 'sepay' ? 'SEPAY' : 'COD';
       const payload = {
         items: items.map((i) => ({ productId: i.id, quantity: i.quantity })),
         ...(selectedAddressId
           ? { addressId: selectedAddressId }
           : { shippingAddress: manualAddress.trim() }),
         shippingMethod: shippingMethodId,
-        paymentMethod,
+        paymentMethod: backendPaymentMethod,
         promoCode: promoResult?.code ?? undefined,
       };
       const response = await orderService.checkout(payload);
       if (response.success) {
         removeSelected();
+        const createdOrder = response.data;
+        if (paymentMethod === 'sepay' && createdOrder?.id) {
+          // Jump to WebView to finish SePay payment.
+          router.replace({ pathname: '/payment/sepay' as any, params: { orderId: createdOrder.id } });
+          return;
+        }
         Alert.alert('Đặt hàng thành công!', 'Cảm ơn bạn đã mua hàng.', [
           { text: 'Xem đơn hàng', onPress: () => router.replace('/(tabs)/orders' as any) },
         ]);

@@ -78,10 +78,14 @@ if [ -f "$PROPS_FILE" ]; then
   done < "$PROPS_FILE"
 fi
 
-# --- 5. Bundle JS (Expo handles this inside gradle, but prebundle for fresh cache) ---
-log "Cleaning old build artifacts..."
+# --- 5. (Optional) full clean — pass --clean as 2nd arg to force. Otherwise skip for fast
+# incremental builds; running gradle clean can crash the CMake external-build graph.
 cd "$ANDROID_DIR"
-./gradlew clean >/dev/null
+if [ "${2:-}" = "--clean" ]; then
+  log "Full clean requested..."
+  rm -rf app/.cxx app/build build
+  ./gradlew clean >/dev/null || true
+fi
 
 # --- 6. Build ---
 if [ "$VARIANT" = "debug" ]; then

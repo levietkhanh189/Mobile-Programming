@@ -397,4 +397,55 @@ export const orderService = {
   },
 };
 
+// SePay payment types + service
+export interface SepayCheckoutFields {
+  operation: string;
+  payment_method: string;
+  order_invoice_number: string;
+  order_amount: number;
+  currency: string;
+  order_description?: string;
+  success_url?: string;
+  error_url?: string;
+  cancel_url?: string;
+  merchant: string;
+  signature: string;
+  [key: string]: string | number | undefined;
+}
+
+export interface SepayCreateResponse {
+  success: boolean;
+  actionUrl: string;
+  fields: SepayCheckoutFields;
+  invoiceNumber: string;
+  amountVnd: number;
+}
+
+export interface SepayStatusResponse {
+  success: boolean;
+  orderId: string;
+  orderStatus: OrderStatus;
+  sepayStatus: 'PENDING' | 'PAID' | 'FAILED' | 'CANCELLED' | null;
+}
+
+export const paymentService = {
+  createSepayCheckout: async (orderId: string): Promise<SepayCreateResponse> => {
+    try {
+      const response = await api.post('/payments/sepay/create', { orderId });
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi tạo thanh toán SePay' };
+    }
+  },
+
+  getSepayStatus: async (orderId: string): Promise<SepayStatusResponse> => {
+    try {
+      const response = await api.get(`/payments/sepay/status/${orderId}`);
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi kiểm tra trạng thái thanh toán' };
+    }
+  },
+};
+
 export default api;

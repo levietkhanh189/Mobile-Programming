@@ -95,6 +95,7 @@ export default function RootLayout() {
                 <Stack.Screen name="product/[id]" options={{ animation: 'slide_from_right' }} />
                 <Stack.Screen name="profile" options={{ animation: 'slide_from_right' }} />
                 <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="payment/sepay" options={{ animation: 'slide_from_right' }} />
               </Stack>
               <StatusBar style="auto" />
             </ThemeProvider>
