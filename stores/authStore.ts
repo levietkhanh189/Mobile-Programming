@@ -2,12 +2,14 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from '../services/api';
+import { storageService } from '../services/storage';
 
 interface AuthState {
     user: User | null;
     token: string | null;
     setAuth: (user: User, token: string) => void;
     clearAuth: () => void;
+    logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -17,6 +19,10 @@ export const useAuthStore = create<AuthState>()(
             token: null,
             setAuth: (user, token) => set({ user, token }),
             clearAuth: () => set({ user: null, token: null }),
+            logout: async () => {
+                await storageService.clearAuthData();
+                set({ user: null, token: null });
+            },
         }),
         {
             name: 'auth-storage',

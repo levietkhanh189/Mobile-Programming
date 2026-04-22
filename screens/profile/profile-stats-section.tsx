@@ -28,6 +28,7 @@ interface Props {
 
 export default function ProfileStatsSection({ points, stats, addresses, onAddressesChange }: Props) {
   const [showAddressModal, setShowAddressModal] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | undefined>(undefined);
 
   const handleDelete = useCallback(async (id: number) => {
     try {
@@ -47,20 +48,42 @@ export default function ProfileStatsSection({ points, stats, addresses, onAddres
     }
   }, [onAddressesChange]);
 
+  const handleAdd = useCallback(() => {
+    setEditingAddress(undefined);
+    setShowAddressModal(true);
+  }, []);
+
+  const handleEdit = useCallback((address: Address) => {
+    setEditingAddress(address);
+    setShowAddressModal(true);
+  }, []);
+
+  const handleModalClose = useCallback(() => {
+    setShowAddressModal(false);
+    setEditingAddress(undefined);
+  }, []);
+
+  const handleModalSuccess = useCallback(() => {
+    setEditingAddress(undefined);
+    onAddressesChange();
+  }, [onAddressesChange]);
+
   return (
     <>
       <PointsCard points={points} />
       {stats && <SpendingStats stats={stats} />}
       <AddressSection
         addresses={addresses}
-        onAdd={() => setShowAddressModal(true)}
+        onAdd={handleAdd}
         onDelete={handleDelete}
         onSetDefault={handleSetDefault}
+        onEdit={handleEdit}
       />
       <AddressFormModal
         visible={showAddressModal}
-        onClose={() => setShowAddressModal(false)}
-        onSuccess={onAddressesChange}
+        onClose={handleModalClose}
+        onSuccess={handleModalSuccess}
+        initialAddress={editingAddress}
       />
     </>
   );

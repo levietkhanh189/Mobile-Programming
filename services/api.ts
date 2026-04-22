@@ -97,6 +97,7 @@ export interface Product {
   price: number;
   category: string;
   image: string;
+  images?: string[];
   soldCount: number;
   discountPercentage: number;
   createdAt: string;
@@ -110,6 +111,13 @@ export interface OrderItem {
   image: string;
 }
 
+export type OrderStatus = 'Pending' | 'Confirmed' | 'Processing' | 'Shipping' | 'Delivered' | 'Cancelled';
+
+export interface OrderStatusHistoryItem {
+  status: OrderStatus;
+  timestamp: string;
+}
+
 export interface Order {
   id: string;
   userId: number;
@@ -117,9 +125,10 @@ export interface Order {
   totalAmount: number;
   shippingAddress: string;
   paymentMethod: 'COD';
-  status: 'Pending' | 'Confirmed' | 'Processing' | 'Shipping' | 'Delivered' | 'Cancelled';
+  status: OrderStatus;
   createdAt: string;
   updatedAt: string;
+  statusHistory?: OrderStatusHistoryItem[];
 }
 
 export interface PaginationInfo {
@@ -279,7 +288,7 @@ export const userService = {
   removeWishlist: (productId: number) => api.delete(`/user/me/wishlist/${productId}`),
   getStats: () => api.get('/user/me/stats'),
   getAddresses: () => api.get('/user/me/addresses'),
-  createAddress: (data: { label?: string; fullName: string; phone: string; address: string; city: string }) =>
+  createAddress: (data: { label?: string; fullName: string; phone: string; address: string; city: string; district?: string; ward?: string; zipCode?: string }) =>
     api.post('/user/me/addresses', data),
   updateAddress: (id: number, data: object) => api.put(`/user/me/addresses/${id}`, data),
   deleteAddress: (id: number) => api.delete(`/user/me/addresses/${id}`),
@@ -344,7 +353,14 @@ export const reviewService = {
 };
 
 export const orderService = {
-  checkout: async (data: { items: { productId: number; quantity: number }[]; shippingAddress?: string; addressId?: number }): Promise<ApiResponse<Order>> => {
+  checkout: async (data: {
+    items: { productId: number; quantity: number }[];
+    shippingAddress?: string;
+    addressId?: number;
+    shippingMethod?: string;
+    paymentMethod?: string;
+    promoCode?: string;
+  }): Promise<ApiResponse<Order>> => {
     try {
       const response = await api.post('/orders/checkout', data);
       return response.data;
@@ -368,6 +384,15 @@ export const orderService = {
       return response.data;
     } catch (error: any) {
       throw error.response?.data || { success: false, message: 'Lỗi khi hủy đơn hàng' };
+    }
+  },
+
+  getOrderById: async (id: string): Promise<ApiResponse<Order>> => {
+    try {
+      const response = await api.get(`/orders/${id}`);
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Lỗi khi lấy chi tiết đơn hàng' };
     }
   },
 };

@@ -9,6 +9,9 @@ export interface Address {
   phone: string;
   address: string;
   city: string;
+  district?: string;
+  ward?: string;
+  zipCode?: string;
   isDefault: boolean;
 }
 
@@ -17,9 +20,10 @@ interface Props {
   onAdd: () => void;
   onDelete: (id: number) => void;
   onSetDefault: (id: number) => void;
+  onEdit: (address: Address) => void;
 }
 
-export default function AddressSection({ addresses, onAdd, onDelete, onSetDefault }: Props) {
+export default function AddressSection({ addresses, onAdd, onDelete, onSetDefault, onEdit }: Props) {
   const confirmDelete = (id: number) => {
     Alert.alert('Xóa địa chỉ', 'Bạn chắc chắn muốn xóa?', [
       { text: 'Hủy', style: 'cancel' },
@@ -48,13 +52,23 @@ export default function AddressSection({ addresses, onAdd, onDelete, onSetDefaul
             )}
           </View>
           <Text className="text-white font-medium">{addr.fullName} · {addr.phone}</Text>
-          <Text className="text-white/70 text-sm mt-0.5">{addr.address}, {addr.city}</Text>
-          <View className="flex-row mt-2 gap-3">
+          <Text className="text-white/70 text-sm mt-0.5">
+            {addr.address}
+            {addr.ward ? `, ${addr.ward}` : ''}
+            {addr.district ? `, ${addr.district}` : ''}
+            {addr.zipCode ? ` ${addr.zipCode}` : ''}
+            {`, ${addr.city}`}
+          </Text>
+          <View className="flex-row mt-2 gap-3 items-center">
             {!addr.isDefault && (
               <TouchableOpacity onPress={() => onSetDefault(addr.id)}>
                 <Text className="text-blue-400 text-xs">Đặt mặc định</Text>
               </TouchableOpacity>
             )}
+            <TouchableOpacity onPress={() => onEdit(addr)} className="flex-row items-center gap-1">
+              <Ionicons name="pencil-outline" size={13} color="#60a5fa" />
+              <Text className="text-blue-400 text-xs">Sửa</Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => confirmDelete(addr.id)}>
               <Text className="text-red-400 text-xs">Xóa</Text>
             </TouchableOpacity>

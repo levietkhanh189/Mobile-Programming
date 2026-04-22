@@ -1,10 +1,13 @@
 import React, { useCallback } from 'react';
-import { View, Text, FlatList, SafeAreaView, Alert, RefreshControl, StyleSheet } from 'react-native';
+import { View, Text, FlatList, SafeAreaView, Alert, RefreshControl, StyleSheet, Pressable } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
 import { orderService, Order } from '@/services/api';
 import { Button } from 'react-native-paper';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme-colors';
 import { useOrderNotifications } from '../../hooks/use-order-notifications';
+import { OrderListSkeleton } from '@/components/order/order-card-skeleton';
+import { ErrorRetry } from '@/components/ui/error-retry';
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   Pending: { bg: '#FEF3C7', text: '#92400E' },
@@ -17,8 +20,9 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
 
 export default function OrderHistoryScreen() {
   useOrderNotifications();
+  const router = useRouter();
   const queryClient = useQueryClient();
-  const { data, isLoading, refetch, isRefetching } = useQuery({
+  const { data, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['orders'],
     queryFn: orderService.getOrderHistory,
   });
@@ -38,6 +42,7 @@ export default function OrderHistoryScreen() {
     const canCancel = item.status === 'Pending' || item.status === 'Confirmed';
     const sc = STATUS_COLORS[item.status] || STATUS_COLORS.Pending;
     return (
+      <Pressable onPress={() => router.push(`/order/${item.id}` as any)} style={({ pressed }) => [pressed && styles.cardPressed]}>
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <View>
@@ -68,8 +73,9 @@ export default function OrderHistoryScreen() {
           </Button>
         )}
       </View>
+      </Pressable>
     );
-  }, [cancelMutation]);
+  }, [cancelMutation, router]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -77,7 +83,11 @@ export default function OrderHistoryScreen() {
         <Text style={styles.headerTitle}>Your Orders</Text>
       </View>
       {isLoading ? (
-        <View style={styles.empty}><Text style={styles.emptyText}>Loading orders...</Text></View>
+        <View style={styles.list}>
+          <OrderListSkeleton count={3} />
+        </View>
+      ) : isError ? (
+        <ErrorRetry onRetry={refetch} />
       ) : orders.length === 0 ? (
         <View style={styles.empty}><Text style={styles.emptyText}>No orders yet</Text></View>
       ) : (
@@ -129,4 +139,5 @@ const styles = StyleSheet.create({
   totalAmount: { fontSize: TYPOGRAPHY.fontSize.lg, fontFamily: TYPOGRAPHY.fontFamily.poppins.bold, color: COLORS.priceBig },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyText: { fontSize: TYPOGRAPHY.fontSize.base, color: COLORS.textSecondary },
+  cardPressed: { opacity: 0.85 },
 });

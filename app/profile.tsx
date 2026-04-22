@@ -1,14 +1,20 @@
 import { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { TextInput, Avatar, ActivityIndicator, Snackbar } from 'react-native-paper';
+import { TextInput, Avatar, Snackbar, Button, Dialog, Portal, Paragraph } from 'react-native-paper';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'expo-router';
 import { storageService } from '../services/storage';
 import { authService, userService, User } from '../services/api';
+import { useAuthStore } from '../stores/authStore';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ProfileDialogs, DialogType } from '@/components/profile/profile-dialogs';
 import ProfileStatsSection from '../screens/profile/profile-stats-section';
+import SettingsSection from '@/components/profile/settings-section';
+import HelpLegalSection from '@/components/profile/help-legal-section';
+import AboutSection from '@/components/profile/about-section';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme-colors';
 import { Address } from '@/components/profile/address-section';
+
 
 interface StatGroup { count: number; total: number }
 interface Stats {
@@ -29,6 +35,7 @@ export default function ProfileScreen() {
   const [newPhone, setNewPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [dialog, setDialog] = useState<{ type: DialogType; visible: boolean }>({ type: 'none', visible: false });
+  const [logoutDialogVisible, setLogoutDialogVisible] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
   const [addresses, setAddresses] = useState<Address[]>([]);
 
@@ -102,6 +109,14 @@ export default function ProfileScreen() {
     } catch (e: any) { showSnackbar(e.message || 'Error'); } finally { setUpdating(false); }
   }, [newPhone, showSnackbar]);
 
+  const handleLogout = useCallback(async () => {
+    try {
+      await useAuthStore.getState().logout();
+    } catch (e) { console.error('Logout error', e); }
+    setLogoutDialogVisible(false);
+    router.replace('/login');
+  }, [router]);
+
   const handleVerifyPhone = useCallback(async () => {
     if (!otp) return showSnackbar('Enter OTP');
     setUpdating(true);
@@ -111,7 +126,27 @@ export default function ProfileScreen() {
     } catch (e: any) { showSnackbar(e.message || 'Invalid OTP'); } finally { setUpdating(false); }
   }, [newPhone, otp, showSnackbar, closeDialog]);
 
-  if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color={COLORS.primary} /></View>;
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Skeleton width={22} height={22} borderRadius={4} />
+          <Skeleton width={120} height={18} borderRadius={4} />
+          <View style={{ width: 22 }} />
+        </View>
+        <ScrollView contentContainerStyle={[styles.scroll, { paddingHorizontal: SPACING.screenPadding }]}>
+          <View style={{ alignItems: 'center', paddingVertical: SPACING.xl }}>
+            <Skeleton width={72} height={72} borderRadius={36} />
+            <Skeleton width={140} height={18} borderRadius={4} style={{ marginTop: 12 }} />
+            <Skeleton width={180} height={14} borderRadius={4} style={{ marginTop: 6 }} />
+          </View>
+          <Skeleton width="100%" height={100} borderRadius={4} style={{ marginBottom: SPACING.md }} />
+          <Skeleton width="100%" height={160} borderRadius={4} style={{ marginBottom: SPACING.md }} />
+          <Skeleton width="100%" height={120} borderRadius={4} />
+        </ScrollView>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -147,6 +182,17 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Tài khoản</Text>
+          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/wishlist' as any)} accessibilityRole="button">
+            <View style={{ flex: 1 }}>
+              <Text style={styles.menuTitle}>Yêu thích</Text>
+              <Text style={styles.menuSub}>Sản phẩm đã lưu</Text>
+            </View>
+            <IconSymbol name="chevron.right" size={16} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Login & Security</Text>
           {[
             { title: 'Password', sub: 'Change your password', onPress: () => setDialog({ type: 'password', visible: true }) },
@@ -162,7 +208,36 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           ))}
         </View>
+
+        <SettingsSection />
+        <HelpLegalSection />
+        <AboutSection />
+
+        <View style={styles.logoutSection}>
+          <Button
+            mode="outlined"
+            onPress={() => setLogoutDialogVisible(true)}
+            textColor={COLORS.error}
+            style={styles.logoutButton}
+            contentStyle={styles.logoutButtonContent}
+          >
+            Đăng xuất
+          </Button>
+        </View>
       </ScrollView>
+
+      <Portal>
+        <Dialog visible={logoutDialogVisible} onDismiss={() => setLogoutDialogVisible(false)}>
+          <Dialog.Title>Đăng xuất?</Dialog.Title>
+          <Dialog.Content>
+            <Paragraph>Bạn có chắc muốn đăng xuất?</Paragraph>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setLogoutDialogVisible(false)}>Hủy</Button>
+            <Button onPress={handleLogout} textColor={COLORS.error}>Đăng xuất</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
 
       <ProfileDialogs dialog={dialog} onDismiss={closeDialog} updating={updating}
         oldPassword={oldPassword} setOldPassword={setOldPassword}
@@ -197,4 +272,7 @@ const styles = StyleSheet.create({
   menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: SPACING.md, borderBottomWidth: 1, borderBottomColor: COLORS.divider },
   menuTitle: { fontSize: TYPOGRAPHY.fontSize.base, fontFamily: TYPOGRAPHY.fontFamily.poppins.medium, color: COLORS.text },
   menuSub: { fontSize: TYPOGRAPHY.fontSize.sm, color: COLORS.textSecondary, marginTop: 2 },
+  logoutSection: { alignItems: 'center', marginHorizontal: SPACING.screenPadding, marginTop: SPACING.lg, marginBottom: SPACING.xl },
+  logoutButton: { width: '100%', borderColor: COLORS.error, borderRadius: 8 },
+  logoutButtonContent: { paddingVertical: 4 },
 });

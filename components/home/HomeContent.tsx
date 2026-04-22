@@ -1,12 +1,15 @@
 import React, { useCallback } from 'react';
-import { ActivityIndicator, ScrollView, View, RefreshControl } from 'react-native';
+import { ScrollView, View, RefreshControl, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { productService } from '@/services/api';
-import { CategoryList } from './CategoryList';
+import { Skeleton } from '@/components/ui/skeleton';
+import { COLORS, SPACING } from '@/constants/theme-colors';
 import { TopSellers } from './TopSellers';
-import { DiscountedProducts } from './DiscountedProducts';
+import { HomeSearchBar } from './home-search-bar';
+import { HomeHeroBanner } from './home-hero-banner';
+import { HomeCategoryIconGrid } from './home-category-icon-grid';
+import { HomeFlashSaleSection } from './home-flash-sale-section';
 import { router } from 'expo-router';
-import { COLORS } from '@/constants/theme-colors';
 
 export const HomeContent = () => {
   const { data: categoriesData, isLoading: catLoading, refetch: refetchCats } = useQuery({
@@ -38,8 +41,25 @@ export const HomeContent = () => {
 
   if (isLoading) {
     return (
-      <View className="flex-1 justify-center items-center py-10">
-        <ActivityIndicator size="large" color={COLORS.primary} />
+      <View style={homeSkelStyles.container}>
+        {/* Hero banner skeleton */}
+        <Skeleton width="100%" height={160} borderRadius={0} />
+        {/* Search bar skeleton */}
+        <View style={homeSkelStyles.row}>
+          <Skeleton width="100%" height={44} borderRadius={8} />
+        </View>
+        {/* Category row skeleton */}
+        <View style={homeSkelStyles.catRow}>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} width={56} height={72} borderRadius={8} />
+          ))}
+        </View>
+        {/* Product grid skeleton */}
+        <View style={homeSkelStyles.grid}>
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} width="48%" height={160} borderRadius={4} />
+          ))}
+        </View>
       </View>
     );
   }
@@ -52,19 +72,39 @@ export const HomeContent = () => {
         <RefreshControl refreshing={false} onRefresh={onRefresh} tintColor={COLORS.primary} />
       }
     >
-      <CategoryList
+      <HomeSearchBar />
+      <HomeHeroBanner />
+      <HomeCategoryIconGrid
         categories={categoriesData?.data || []}
-        selectedCategory="All"
         onSelectCategory={navigateToList}
+      />
+      <HomeFlashSaleSection
+        products={discountData?.data || []}
+        onProductPress={(p) => router.push(`/product/${p.id}` as any)}
       />
       <TopSellers
         products={topSellersData?.data || []}
         onProductPress={(p) => router.push(`/product/${p.id}` as any)}
       />
-      <DiscountedProducts
-        products={discountData?.data || []}
-        onProductPress={(p) => router.push(`/product/${p.id}` as any)}
-      />
     </ScrollView>
   );
 };
+
+const homeSkelStyles = StyleSheet.create({
+  container: { flex: 1, paddingBottom: SPACING.xl },
+  row: { paddingHorizontal: SPACING.screenPadding, marginTop: SPACING.sm },
+  catRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.screenPadding,
+    marginTop: SPACING.md,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.screenPadding,
+    marginTop: SPACING.md,
+    gap: 8,
+  },
+});

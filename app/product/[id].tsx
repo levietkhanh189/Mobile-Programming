@@ -2,11 +2,10 @@ import { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { productService, reviewService, Product } from '../../services/api';
 import { useCartStore } from '../../stores/cartStore';
-import { useFavoritesStore } from '../../stores/favoritesStore';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import ProductFavoriteButton from '../../components/product/product-favorite-button';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme-colors';
 import ProductDetailContent from '../../screens/product/product-detail-content';
 
@@ -29,7 +28,6 @@ export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const addItem = useCartStore((state) => state.addItem);
-  const { isFavorite, addFavorite, removeFavorite } = useFavoritesStore();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -68,21 +66,6 @@ export default function ProductDetailScreen() {
     setTimeout(() => setAdded(false), 2000);
   }, [product, addItem]);
 
-  const handleToggleFavorite = useCallback(() => {
-    if (!product) return;
-    if (isFavorite(product.id)) {
-      removeFavorite(product.id);
-    } else {
-      addFavorite({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image,
-        category: product.category,
-      });
-    }
-  }, [product, isFavorite, addFavorite, removeFavorite]);
-
   const handleReviewSuccess = useCallback((pointsEarned: number) => {
     // Refresh reviews after successful submission
     reviewService.getProductReviews(productId)
@@ -110,8 +93,6 @@ export default function ProductDetailScreen() {
     );
   }
 
-  const liked = isFavorite(product.id);
-
   return (
     <View style={styles.container}>
       <View style={styles.topBar}>
@@ -119,9 +100,7 @@ export default function ProductDetailScreen() {
           <IconSymbol name="chevron.left" size={24} color={COLORS.white} />
         </TouchableOpacity>
         <Text style={styles.topBarTitle} numberOfLines={1}>{product.name}</Text>
-        <TouchableOpacity onPress={handleToggleFavorite} accessibilityLabel={liked ? 'Remove from favorites' : 'Add to favorites'}>
-          <Ionicons name={liked ? 'heart' : 'heart-outline'} size={24} color={liked ? '#ef4444' : '#ffffff'} />
-        </TouchableOpacity>
+        <ProductFavoriteButton productId={product.id} size={24} />
       </View>
 
       <ProductDetailContent
