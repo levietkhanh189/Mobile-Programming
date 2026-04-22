@@ -1,5 +1,6 @@
 import React, { memo, useCallback } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { Image } from 'expo-image';
 import { Product } from '@/services/api';
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '@/constants/theme-colors';
 
@@ -28,7 +29,7 @@ const DiscountCard = memo(function DiscountCard({
       accessibilityLabel={`${product.name}, $${discountedPrice.toFixed(2)}, ${product.discountPercentage}% off`}
     >
       <View>
-        <Image source={{ uri: product.image }} style={styles.image} resizeMode="cover" />
+        <Image source={{ uri: product.image }} style={styles.image} contentFit="cover" cachePolicy="memory-disk" transition={150} />
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{product.discountPercentage}% off</Text>
         </View>

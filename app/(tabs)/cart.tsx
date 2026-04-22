@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, Text, FlatList, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCartStore, CartItem } from '@/stores/cartStore';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { router } from 'expo-router';
@@ -49,7 +50,7 @@ export default function CartScreen() {
   ), [toggleSelected, updateQuantity, removeItem]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Giỏ hàng</Text>
         <Text style={styles.headerCount}>
@@ -93,6 +94,10 @@ export default function CartScreen() {
             keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
+            initialNumToRender={6}
+            maxToRenderPerBatch={8}
+            windowSize={7}
+            removeClippedSubviews
             ListFooterComponent={
               <Text style={styles.hint}>
                 Chọn sản phẩm bạn muốn thanh toán bằng ô vuông bên trái

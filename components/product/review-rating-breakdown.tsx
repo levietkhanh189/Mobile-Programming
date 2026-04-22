@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { COLORS, TYPOGRAPHY } from '@/constants/theme-colors';
 
 interface Review {
   id: number;
@@ -51,19 +52,24 @@ export default function ReviewRatingBreakdown({ reviews }: Props) {
 const styles = StyleSheet.create({
   container: { paddingHorizontal: 16, marginBottom: 8 },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  avgText: { color: '#ffffff', fontSize: 28, fontWeight: 'bold', marginRight: 4 },
+  avgText: {
+    color: COLORS.text,
+    fontSize: 28,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.bold,
+    marginRight: 4,
+  },
   starIcon: { marginRight: 4 },
-  totalText: { color: 'rgba(255,255,255,0.6)', fontSize: 14 },
+  totalText: { color: COLORS.textSecondary, fontSize: 14 },
   row: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
-  label: { color: 'rgba(255,255,255,0.8)', width: 28, fontSize: 13 },
+  label: { color: COLORS.text, width: 28, fontSize: 13 },
   barBg: {
     flex: 1,
     height: 8,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: COLORS.divider,
     borderRadius: 4,
     marginHorizontal: 8,
     overflow: 'hidden',
   },
   barFill: { height: 8, backgroundColor: '#f59e0b', borderRadius: 4 },
-  count: { color: 'rgba(255,255,255,0.6)', fontSize: 12, width: 36, textAlign: 'right' },
+  count: { color: COLORS.textSecondary, fontSize: 12, width: 36, textAlign: 'right' },
 });

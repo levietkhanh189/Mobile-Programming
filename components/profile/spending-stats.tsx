@@ -30,7 +30,7 @@ function StatBox({ icon, label, count, total, color }: StatBoxProps) {
       <Ionicons name={icon as any} size={20} color={color} />
       <Text style={styles.boxCount}>{count}</Text>
       <Text style={styles.boxLabel} numberOfLines={1}>{label}</Text>
-      <Text style={styles.boxTotal}>{(total / 1000).toFixed(0)}k đ</Text>
+      <Text style={styles.boxTotal}>${total.toFixed(2)}</Text>
     </View>
   );
 }
@@ -50,7 +50,7 @@ export default function SpendingStats({ stats }: Props) {
       </View>
       <View style={styles.totalRow}>
         <Text style={styles.totalLabel}>Tổng đã chi</Text>
-        <Text style={styles.totalValue}>{stats.totalSpent.toLocaleString('vi-VN')}đ</Text>
+        <Text style={styles.totalValue}>${stats.totalSpent.toFixed(2)}</Text>
       </View>
     </View>
   );

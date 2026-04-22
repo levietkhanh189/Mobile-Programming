@@ -10,7 +10,7 @@ interface CartCheckoutBarProps {
     onCheckout: () => void;
 }
 
-const formatVND = (n: number) => Math.round(n).toLocaleString('vi-VN') + 'đ';
+const formatUSD = (n: number) => '$' + n.toFixed(2);
 
 export default function CartCheckoutBar({
     selectedCount,
@@ -26,7 +26,7 @@ export default function CartCheckoutBar({
                 <View style={styles.savingsRow}>
                     <IconSymbol name="tag.fill" size={14} color={COLORS.success} />
                     <Text style={styles.savingsText}>
-                        Tiết kiệm <Text style={styles.savingsValue}>{formatVND(savings)}</Text>
+                        Tiết kiệm <Text style={styles.savingsValue}>{formatUSD(savings)}</Text>
                     </Text>
                 </View>
             )}
@@ -34,14 +34,14 @@ export default function CartCheckoutBar({
             <View style={styles.totalRow}>
                 <View style={styles.totalLeft}>
                     <Text style={styles.totalLabel}>Tổng tạm tính</Text>
-                    <Text style={styles.totalAmount}>{formatVND(subtotal)}</Text>
+                    <Text style={styles.totalAmount}>{formatUSD(subtotal)}</Text>
                 </View>
                 <TouchableOpacity
                     style={[styles.checkoutBtn, disabled && styles.checkoutBtnDisabled]}
                     onPress={onCheckout}
                     disabled={disabled}
                     accessibilityRole="button"
-                    accessibilityLabel={`Thanh toán, tổng ${formatVND(subtotal)}`}
+                    accessibilityLabel={`Thanh toán, tổng ${formatUSD(subtotal)}`}
                     accessibilityState={{ disabled }}
                 >
                     <Text style={[styles.checkoutText, disabled && styles.checkoutTextDisabled]}>

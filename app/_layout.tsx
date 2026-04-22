@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { PaperProvider } from 'react-native-paper';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider as AppThemeProvider } from '@/contexts/ThemeContext';
 import { useFonts } from 'expo-font';
 import {
@@ -28,7 +29,17 @@ import { useAuthStore } from '../stores/authStore';
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    },
+  },
+});
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -69,26 +80,27 @@ export default function RootLayout() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppThemeProvider>
-        <PaperProvider theme={paperTheme}>
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="login" />
-              <Stack.Screen name="register" />
-              <Stack.Screen name="forgot-password" />
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="home" />
-              <Stack.Screen name="products" options={{ animation: 'slide_from_right' }} />
-              <Stack.Screen name="product/[id]" options={{ animation: 'slide_from_right' }} />
-              <Stack.Screen name="profile" options={{ animation: 'slide_from_right' }} />
-              <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-            </Stack>
-            <StatusBar style="auto" />
-          </ThemeProvider>
-        </PaperProvider>
-      </AppThemeProvider>
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <AppThemeProvider>
+          <PaperProvider theme={paperTheme}>
+            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+              <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="login" />
+                <Stack.Screen name="register" />
+                <Stack.Screen name="forgot-password" />
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="products" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen name="product/[id]" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen name="profile" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+              </Stack>
+              <StatusBar style="auto" />
+            </ThemeProvider>
+          </PaperProvider>
+        </AppThemeProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }

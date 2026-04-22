@@ -2,13 +2,13 @@ import React, { useRef, useState } from 'react';
 import {
   FlatList,
   View,
-  Image,
   TouchableOpacity,
   StyleSheet,
   Dimensions,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { COLORS } from '@/constants/theme-colors';
 import ProductImageZoomModal from './product-image-zoom-modal';
 
@@ -45,12 +45,19 @@ export default function ProductImageCarousel({ images, height = 300 }: Props) {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleScroll}
+        initialNumToRender={1}
+        windowSize={3}
+        removeClippedSubviews
+        getItemLayout={(_, index) => ({ length: SCREEN_WIDTH, offset: SCREEN_WIDTH * index, index })}
         renderItem={({ item }) => (
           <TouchableOpacity activeOpacity={0.9} onPress={() => handleImagePress(item)}>
             <Image
               source={{ uri: item }}
               style={[styles.image, { width: SCREEN_WIDTH, height }]}
-              resizeMode="contain"
+              contentFit="contain"
+              cachePolicy="memory-disk"
+              transition={200}
+              priority="high"
             />
           </TouchableOpacity>
         )}

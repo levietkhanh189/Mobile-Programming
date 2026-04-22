@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { productService } from '@/services/api';
 import { router } from 'expo-router';
@@ -19,7 +20,7 @@ export default function ExploreScreen() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Explore</Text>
       </View>

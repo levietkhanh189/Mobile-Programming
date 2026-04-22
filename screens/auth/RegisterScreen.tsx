@@ -119,7 +119,7 @@ const RegisterScreen = () => {
       });
 
       setTimeout(() => {
-        router.replace('/home');
+        router.replace('/(tabs)' as any);
       }, 1500);
     } catch (error: any) {
       setSnackbar({

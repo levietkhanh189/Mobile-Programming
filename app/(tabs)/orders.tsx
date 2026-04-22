@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { View, Text, FlatList, SafeAreaView, Alert, RefreshControl, StyleSheet, Pressable } from 'react-native';
+import { View, Text, FlatList, Alert, RefreshControl, StyleSheet, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { orderService, Order } from '@/services/api';
@@ -78,7 +79,7 @@ export default function OrderHistoryScreen() {
   }, [cancelMutation, router]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Your Orders</Text>
       </View>

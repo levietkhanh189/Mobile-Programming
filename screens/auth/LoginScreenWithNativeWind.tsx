@@ -88,7 +88,7 @@ const LoginScreen = () => {
 
       // Chuyển về màn hình home sau 1s
       setTimeout(() => {
-        router.replace('/home');
+        router.replace('/(tabs)' as any);
       }, 1000);
     } catch (error: any) {
       setSnackbar({

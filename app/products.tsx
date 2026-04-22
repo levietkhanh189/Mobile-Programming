@@ -1,10 +1,13 @@
 import React, { useState, useCallback } from 'react';
-import { FlatList, View, ActivityIndicator, Text, TouchableOpacity, SafeAreaView, StyleSheet, Image } from 'react-native';
+import { FlatList, View, ActivityIndicator, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { productService, Product } from '@/services/api';
 import { Searchbar } from 'react-native-paper';
 import { useCartStore } from '@/stores/cartStore';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, DEVICE } from '@/constants/theme-colors';
 import { ProductGridSkeleton } from '@/components/product/product-card-skeleton';
@@ -16,6 +19,9 @@ import { NoResultsEmptyState } from '@/components/search/no-results-empty-state'
 const CARD_WIDTH = (DEVICE.width - SPACING.screenPadding * 2 - 10) / 2;
 
 export default function ProductListScreen() {
+  const params = useLocalSearchParams<{ category?: string }>();
+  const category = typeof params.category === 'string' && params.category.length > 0 ? params.category : undefined;
+  const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
   const [submittedSearch, setSubmittedSearch] = useState('');
   const addItem = useCartStore((state) => state.addItem);
@@ -23,9 +29,9 @@ export default function ProductListScreen() {
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch, isRefetching } =
     useInfiniteQuery({
-      queryKey: ['products', submittedSearch],
+      queryKey: ['products', submittedSearch, category ?? ''],
       queryFn: ({ pageParam = 1 }) =>
-        productService.getProducts({ search: submittedSearch, page: pageParam, limit: 12 }),
+        productService.getProducts({ search: submittedSearch, category, page: pageParam, limit: 12 }),
       getNextPageParam: (lastPage) =>
         lastPage.pagination.page < lastPage.pagination.totalPages
           ? lastPage.pagination.page + 1
@@ -41,7 +47,9 @@ export default function ProductListScreen() {
 
   const products = data?.pages.flatMap((page) => page.data) || [];
   const hasSearched = submittedSearch.length > 0;
-  const noResults = hasSearched && !isLoading && !isError && products.length === 0;
+  const hasCategory = !!category;
+  const shouldShowList = hasSearched || hasCategory;
+  const noResults = shouldShowList && !isLoading && !isError && products.length === 0;
 
   const handleSubmitSearch = useCallback(() => {
     const trimmed = search.trim();
@@ -62,7 +70,7 @@ export default function ProductListScreen() {
       accessibilityRole="button"
       accessibilityLabel={`${item.name}, $${item.price}`}
     >
-      <Image source={{ uri: item.image }} style={styles.cardImage} resizeMode="cover" />
+      <Image source={{ uri: item.image }} style={styles.cardImage} contentFit="cover" cachePolicy="memory-disk" transition={150} />
       <View style={styles.cardInfo}>
         <Text style={styles.cardName} numberOfLines={2}>{item.name}</Text>
         <Text style={styles.cardPrice}>${item.price}</Text>
@@ -81,9 +89,10 @@ export default function ProductListScreen() {
   ), [addItem]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
+    <View style={styles.container}>
+      <StatusBar style="light" />
+      {/* Header (extends up behind status bar) */}
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} accessibilityLabel="Go back">
           <IconSymbol name="chevron.left" size={22} color={COLORS.white} />
         </TouchableOpacity>
@@ -97,8 +106,15 @@ export default function ProductListScreen() {
         />
       </View>
 
-      {/* Show recent searches when bar is empty and no search submitted */}
-      {!hasSearched && !isLoading && (
+      {/* Category indicator */}
+      {hasCategory && (
+        <View style={styles.categoryBar}>
+          <Text style={styles.categoryBarText} numberOfLines={1}>Category: {category}</Text>
+        </View>
+      )}
+
+      {/* Show recent searches when bar is empty and no search/category active */}
+      {!shouldShowList && !isLoading && (
         <RecentSearchesList onSelect={handleSelectRecent} />
       )}
 
@@ -109,8 +125,8 @@ export default function ProductListScreen() {
       ) : isError ? (
         <ErrorRetry onRetry={refetch} />
       ) : noResults ? (
-        <NoResultsEmptyState query={submittedSearch} suggestions={topSellersData?.data} />
-      ) : hasSearched ? (
+        <NoResultsEmptyState query={submittedSearch || category || ''} suggestions={topSellersData?.data} />
+      ) : shouldShowList ? (
         <FlatList
           data={products}
           renderItem={renderProduct}
@@ -126,9 +142,13 @@ export default function ProductListScreen() {
           onRefresh={refetch}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={7}
+          removeClippedSubviews
         />
       ) : null}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -136,7 +156,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    paddingHorizontal: SPACING.screenPadding, paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.screenPadding, paddingBottom: SPACING.sm,
     backgroundColor: COLORS.headerBg,
   },
   backBtn: { padding: 4 },
@@ -144,6 +164,14 @@ const styles = StyleSheet.create({
     flex: 1, height: 40, backgroundColor: COLORS.white, borderRadius: 4, elevation: 0,
   },
   searchInput: { fontSize: TYPOGRAPHY.fontSize.sm, minHeight: 0 },
+  categoryBar: {
+    paddingHorizontal: SPACING.screenPadding, paddingVertical: SPACING.xs,
+    backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.divider,
+  },
+  categoryBarText: {
+    fontSize: TYPOGRAPHY.fontSize.sm, fontFamily: TYPOGRAPHY.fontFamily.poppins.medium,
+    color: COLORS.text,
+  },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   skeletonGrid: {
     flex: 1, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between',

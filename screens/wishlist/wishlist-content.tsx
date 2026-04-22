@@ -1,4 +1,6 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
+import React, { memo, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import { ActivityIndicator } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,7 +8,7 @@ import { useWishlist, useToggleWishlist } from '../../hooks/use-wishlist';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants/theme-colors';
 import type { Product } from '../../services/api';
 
-function WishlistItem({ item }: { item: Product }) {
+const WishlistItem = memo(function WishlistItem({ item }: { item: Product }) {
   const toggle = useToggleWishlist();
   const router = useRouter();
 
@@ -14,19 +16,22 @@ function WishlistItem({ item }: { item: Product }) {
     ? item.price * (1 - item.discountPercentage / 100)
     : item.price;
 
+  const handlePress = useCallback(() => router.push(`/product/${item.id}`), [router, item.id]);
+  const handleRemove = useCallback(() => toggle.mutate(item.id), [toggle, item.id]);
+
   return (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => router.push(`/product/${item.id}`)}
+      onPress={handlePress}
       accessibilityRole="button"
     >
-      <Image source={{ uri: item.image }} style={styles.image} resizeMode="contain" />
+      <Image source={{ uri: item.image }} style={styles.image} contentFit="contain" cachePolicy="memory-disk" transition={120} />
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={2}>{item.name}</Text>
         <Text style={styles.category}>{item.category}</Text>
         <View style={styles.priceRow}>
           <Text style={styles.price}>
-            {discountedPrice.toLocaleString('vi-VN')}₫
+            ${discountedPrice.toFixed(2)}
           </Text>
           {item.discountPercentage > 0 && (
             <Text style={styles.discount}>-{item.discountPercentage}%</Text>
@@ -34,7 +39,7 @@ function WishlistItem({ item }: { item: Product }) {
         </View>
       </View>
       <TouchableOpacity
-        onPress={() => toggle.mutate(item.id)}
+        onPress={handleRemove}
         disabled={toggle.isPending}
         style={styles.removeBtn}
         accessibilityLabel="Xóa khỏi yêu thích"
@@ -43,7 +48,7 @@ function WishlistItem({ item }: { item: Product }) {
       </TouchableOpacity>
     </TouchableOpacity>
   );
-}
+});
 
 export default function WishlistContent() {
   const router = useRouter();
@@ -92,6 +97,10 @@ export default function WishlistContent() {
       renderItem={({ item }) => <WishlistItem item={item} />}
       contentContainerStyle={styles.list}
       showsVerticalScrollIndicator={false}
+      initialNumToRender={8}
+      maxToRenderPerBatch={8}
+      windowSize={7}
+      removeClippedSubviews
     />
   );
 }

@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
-  Image,
   FlatList,
   TouchableOpacity,
   StyleSheet,
@@ -10,6 +9,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { COLORS, SPACING } from '@/constants/theme-colors';
 import { router } from 'expo-router';
 
@@ -104,7 +104,7 @@ export const HomeHeroBanner = () => {
         accessibilityLabel={item.title}
       >
         <View style={styles.slide}>
-          <Image source={{ uri: item.imageUri }} style={styles.image} resizeMode="cover" />
+          <Image source={{ uri: item.imageUri }} style={styles.image} contentFit="cover" cachePolicy="memory-disk" transition={200} priority="high" />
           <View style={styles.overlay}>
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.subtitle}>{item.subtitle}</Text>

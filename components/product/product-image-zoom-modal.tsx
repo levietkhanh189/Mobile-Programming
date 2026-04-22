@@ -1,14 +1,14 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import {
   Modal,
   View,
-  Image,
   TouchableOpacity,
   StyleSheet,
   Dimensions,
   Text,
   ScrollView,
 } from 'react-native';
+import { Image } from 'expo-image';
 
 const { width, height } = Dimensions.get('window');
 
@@ -33,7 +33,7 @@ export default function ProductImageZoomModal({ visible, imageUri, onClose }: Pr
           showsHorizontalScrollIndicator={false}
           centerContent
         >
-          <Image source={{ uri: imageUri }} style={styles.image} resizeMode="contain" />
+          <Image source={{ uri: imageUri }} style={styles.image} contentFit="contain" cachePolicy="memory-disk" transition={150} />
         </ScrollView>
       </View>
     </Modal>

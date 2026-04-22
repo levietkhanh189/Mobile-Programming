@@ -9,8 +9,8 @@ interface Props {
   promoResult: PromoResult;
 }
 
-function formatVND(amount: number): string {
-  return amount.toLocaleString('vi-VN') + 'đ';
+function formatUSD(amount: number): string {
+  return '$' + amount.toFixed(2);
 }
 
 export default function OrderSummaryBreakdown({ subtotal, shippingFee, promoResult }: Props) {
@@ -27,20 +27,20 @@ export default function OrderSummaryBreakdown({ subtotal, shippingFee, promoResu
 
       <View style={styles.row}>
         <Text style={styles.label}>Tạm tính</Text>
-        <Text style={styles.value}>{formatVND(subtotal)}</Text>
+        <Text style={styles.value}>{formatUSD(subtotal)}</Text>
       </View>
 
       <View style={styles.row}>
         <Text style={styles.label}>Phí vận chuyển</Text>
         <Text style={[styles.value, freeShipping && styles.free]}>
-          {freeShipping ? 'Miễn phí' : shippingFee === 0 ? 'Miễn phí' : formatVND(shippingFee)}
+          {freeShipping ? 'Miễn phí' : shippingFee === 0 ? 'Miễn phí' : formatUSD(shippingFee)}
         </Text>
       </View>
 
       {discount > 0 && (
         <View style={styles.row}>
           <Text style={styles.label}>Giảm giá ({percentOff * 100}%)</Text>
-          <Text style={styles.discount}>-{formatVND(discount)}</Text>
+          <Text style={styles.discount}>-{formatUSD(discount)}</Text>
         </View>
       )}
 
@@ -48,7 +48,7 @@ export default function OrderSummaryBreakdown({ subtotal, shippingFee, promoResu
 
       <View style={styles.row}>
         <Text style={styles.totalLabel}>Tổng cộng</Text>
-        <Text style={styles.totalValue}>{formatVND(total)}</Text>
+        <Text style={styles.totalValue}>{formatUSD(total)}</Text>
       </View>
     </View>
   );

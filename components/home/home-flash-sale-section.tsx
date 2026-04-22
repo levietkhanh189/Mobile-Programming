@@ -2,12 +2,12 @@ import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
-  Image,
   FlatList,
   TouchableOpacity,
   StyleSheet,
   Dimensions,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { Product } from '@/services/api';
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '@/constants/theme-colors';
 
@@ -39,7 +39,7 @@ const FlashCard = memo(function FlashCard({
       accessibilityRole="button"
       accessibilityLabel={`${product.name}, giá ${discountedPrice.toFixed(2)}, giảm ${product.discountPercentage}%`}
     >
-      <Image source={{ uri: product.image }} style={styles.image} resizeMode="cover" />
+      <Image source={{ uri: product.image }} style={styles.image} contentFit="cover" cachePolicy="memory-disk" transition={150} />
       <View style={styles.badge}>
         <Text style={styles.badgeText}>-{product.discountPercentage}%</Text>
       </View>
@@ -92,6 +92,10 @@ export const HomeFlashSaleSection = memo(function HomeFlashSaleSection({
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
+        initialNumToRender={4}
+        maxToRenderPerBatch={4}
+        windowSize={5}
+        removeClippedSubviews
         renderItem={({ item }) => (
           <FlashCard
             product={item}

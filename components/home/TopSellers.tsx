@@ -1,5 +1,6 @@
 import React, { memo, useCallback } from 'react';
-import { ScrollView, View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { Product } from '@/services/api';
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '@/constants/theme-colors';
 
@@ -22,7 +23,7 @@ const ProductCard = memo(function ProductCard({
       accessibilityRole="button"
       accessibilityLabel={`${product.name}, $${product.price}`}
     >
-      <Image source={{ uri: product.image }} style={styles.image} resizeMode="cover" />
+      <Image source={{ uri: product.image }} style={styles.image} contentFit="cover" cachePolicy="memory-disk" transition={150} />
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
         <Text style={styles.price}>${product.price}</Text>

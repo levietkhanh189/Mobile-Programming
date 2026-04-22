@@ -12,7 +12,7 @@ interface CartLineItemProps {
     onRemove: (productId: number) => void;
 }
 
-const formatVND = (n: number) => Math.round(n).toLocaleString('vi-VN') + 'đ';
+const formatUSD = (n: number) => '$' + n.toFixed(2);
 
 export default function CartLineItem({
     item,
@@ -58,10 +58,10 @@ export default function CartLineItem({
                 <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
 
                 <View style={styles.priceRow}>
-                    <Text style={styles.price}>{formatVND(finalPrice)}</Text>
+                    <Text style={styles.price}>{formatUSD(finalPrice)}</Text>
                     {hasDiscount && (
                         <>
-                            <Text style={styles.priceOriginal}>{formatVND(item.price)}</Text>
+                            <Text style={styles.priceOriginal}>{formatUSD(item.price)}</Text>
                             <View style={styles.discountBadge}>
                                 <Text style={styles.discountText}>-{Math.round(item.discountPercentage)}%</Text>
                             </View>
@@ -69,7 +69,7 @@ export default function CartLineItem({
                     )}
                 </View>
 
-                <Text style={styles.subtotal}>Tạm tính: <Text style={styles.subtotalValue}>{formatVND(subtotal)}</Text></Text>
+                <Text style={styles.subtotal}>Tạm tính: <Text style={styles.subtotalValue}>{formatUSD(subtotal)}</Text></Text>
 
                 <View style={styles.cardActions}>
                     <View style={styles.qtyRow}>

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ReviewRatingBreakdown from './review-rating-breakdown';
 import ReviewSortFilterBar, { SortOption } from './review-sort-filter-bar';
+import { COLORS, TYPOGRAPHY } from '@/constants/theme-colors';
 
 interface Review {
   id: number;
@@ -73,7 +74,7 @@ function ReviewItem({ review: r }: { review: Review }) {
         <Text style={styles.userName}>{r.user?.fullName || 'Người dùng'}</Text>
         <View style={styles.stars}>
           {[1, 2, 3, 4, 5].map(s => (
-            <Ionicons key={s} name="star" size={12} color={s <= r.rating ? '#f59e0b' : 'rgba(255,255,255,0.25)'} />
+            <Ionicons key={s} name="star" size={12} color={s <= r.rating ? '#f59e0b' : COLORS.divider} />
           ))}
         </View>
       </View>
@@ -84,13 +85,29 @@ function ReviewItem({ review: r }: { review: Review }) {
 
 const styles = StyleSheet.create({
   container: { marginTop: 16, marginHorizontal: 16 },
-  title: { color: '#ffffff', fontSize: 18, fontWeight: 'bold', marginBottom: 12 },
-  card: { backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: 12, marginBottom: 8 },
+  title: {
+    color: COLORS.text,
+    fontSize: 18,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.bold,
+    marginBottom: 12,
+  },
+  card: {
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+    padding: 12,
+    marginBottom: 8,
+  },
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
-  userName: { color: '#ffffff', fontWeight: '600', flex: 1 },
+  userName: {
+    color: COLORS.text,
+    fontFamily: TYPOGRAPHY.fontFamily.poppins.semibold,
+    flex: 1,
+  },
   stars: { flexDirection: 'row' },
-  comment: { color: 'rgba(255,255,255,0.8)', fontSize: 13 },
-  empty: { color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 12 },
+  comment: { color: COLORS.textSecondary, fontSize: 13 },
+  empty: { color: COLORS.textMuted, textAlign: 'center', marginTop: 12 },
   moreBtn: { marginTop: 8, paddingVertical: 10, alignItems: 'center' },
-  moreText: { color: '#60a5fa', fontSize: 14 },
+  moreText: { color: COLORS.link, fontSize: 14 },
 });

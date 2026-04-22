@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { Chip, Menu, Button } from 'react-native-paper';
+import { COLORS } from '@/constants/theme-colors';
 
 export type SortOption = 'newest' | 'oldest' | 'high' | 'low';
 
@@ -33,7 +34,7 @@ export default function ReviewSortFilterBar({ sort, starFilter, onSortChange, on
           <Button
             mode="outlined"
             compact
-            textColor="rgba(255,255,255,0.85)"
+            textColor={COLORS.text}
             style={styles.sortButton}
             onPress={() => setMenuVisible(true)}
           >
@@ -69,10 +70,10 @@ export default function ReviewSortFilterBar({ sort, starFilter, onSortChange, on
 
 const styles = StyleSheet.create({
   container: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, marginBottom: 8 },
-  sortButton: { borderColor: 'rgba(255,255,255,0.3)', marginRight: 8 },
+  sortButton: { borderColor: COLORS.cardBorder, marginRight: 8 },
   chips: { flexDirection: 'row', gap: 6, alignItems: 'center' },
-  chip: { backgroundColor: 'rgba(255,255,255,0.1)' },
-  chipActive: { backgroundColor: '#f59e0b' },
-  chipText: { color: 'rgba(255,255,255,0.75)', fontSize: 12 },
-  chipTextActive: { color: '#1a1a1a', fontSize: 12, fontWeight: 'bold' },
+  chip: { backgroundColor: COLORS.background, borderWidth: 1, borderColor: COLORS.cardBorder },
+  chipActive: { backgroundColor: '#f59e0b', borderColor: '#f59e0b' },
+  chipText: { color: COLORS.textSecondary, fontSize: 12 },
+  chipTextActive: { color: COLORS.text, fontSize: 12, fontWeight: 'bold' },
 });

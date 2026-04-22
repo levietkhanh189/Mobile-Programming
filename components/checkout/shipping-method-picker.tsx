@@ -41,7 +41,7 @@ export default function ShippingMethodPicker({ selected, onSelect }: Props) {
               <Text style={styles.eta}>{method.eta}</Text>
             </View>
             <Text style={styles.fee}>
-              {method.fee === 0 ? 'Miễn phí' : `${method.fee.toLocaleString('vi-VN')}đ`}
+              {method.fee === 0 ? 'Miễn phí' : `$${method.fee.toFixed(2)}`}
             </Text>
           </TouchableOpacity>
         );

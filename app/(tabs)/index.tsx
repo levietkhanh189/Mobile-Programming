@@ -1,5 +1,7 @@
 import React from 'react';
-import { StyleSheet, SafeAreaView, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { HomeContent } from '@/components/home/HomeContent';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { COLORS, TYPOGRAPHY } from '@/constants/theme-colors';
@@ -8,11 +10,13 @@ import { useNotificationStore } from '@/stores/notificationStore';
 
 export default function HomeScreen() {
   const unreadCount = useNotificationStore((state) => state.unreadCount());
+  const insets = useSafeAreaInsets();
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Amazon-style dark header */}
-      <View style={styles.header}>
+    <View style={styles.container}>
+      <StatusBar style="light" />
+      {/* Dark header extends up behind status bar; inner content pushed below the notch */}
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <Text style={styles.logo}>Bookly</Text>
         <View style={styles.headerActions}>
           {/* Bell icon with unread badge */}
@@ -43,7 +47,7 @@ export default function HomeScreen() {
       <View style={styles.content}>
         <HomeContent />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -57,7 +61,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingBottom: 10,
     backgroundColor: COLORS.headerBg,
   },
   logo: {

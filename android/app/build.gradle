@@ -104,15 +104,23 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            // Release keystore properties loaded from android/gradle.properties or env vars.
+            // If BOOKLY_RELEASE_STORE_FILE is not set, fall back to debug keystore so the
+            // build still succeeds (useful for CI smoke tests).
+            def storeFileName = findProperty('BOOKLY_RELEASE_STORE_FILE') ?: 'debug.keystore'
+            storeFile file(storeFileName)
+            storePassword findProperty('BOOKLY_RELEASE_STORE_PASSWORD') ?: 'android'
+            keyAlias findProperty('BOOKLY_RELEASE_KEY_ALIAS') ?: 'androiddebugkey'
+            keyPassword findProperty('BOOKLY_RELEASE_KEY_PASSWORD') ?: 'android'
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
             shrinkResources enableShrinkResources.toBoolean()
             minifyEnabled enableMinifyInReleaseBuilds

@@ -185,3 +185,9 @@ expo-env.d.ts
 AGENTS.md
 CLAUDE.md
 Mobile-Programming.code-workspace
+
+# Android signing (NEVER commit)
+android/app/*.keystore
+android/app/*.jks
+!android/app/debug.keystore
+android/keystore.properties

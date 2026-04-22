@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme-colors';
 
@@ -34,11 +35,11 @@ export default function RelatedProducts({ products }: Props) {
             style={styles.card}
             accessibilityRole="button"
           >
-            <Image source={{ uri: item.image }} style={styles.image} resizeMode="cover" />
+            <Image source={{ uri: item.image }} style={styles.image} contentFit="cover" cachePolicy="memory-disk" transition={150} />
             <View style={styles.body}>
               <Text style={styles.name} numberOfLines={2}>{item.name}</Text>
               <Text style={styles.price}>
-                {item.price.toLocaleString('vi-VN')}đ
+                ${item.price.toFixed(2)}
               </Text>
             </View>
           </TouchableOpacity>
