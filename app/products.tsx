@@ -19,8 +19,11 @@ import { NoResultsEmptyState } from '@/components/search/no-results-empty-state'
 const CARD_WIDTH = (DEVICE.width - SPACING.screenPadding * 2 - 10) / 2;
 
 export default function ProductListScreen() {
-  const params = useLocalSearchParams<{ category?: string }>();
-  const category = typeof params.category === 'string' && params.category.length > 0 ? params.category : undefined;
+  const params = useLocalSearchParams<{ category?: string | string[] }>();
+  const rawCategory = Array.isArray(params.category) ? params.category[0] : params.category;
+  const category = typeof rawCategory === 'string' && rawCategory.trim().length > 0
+    ? (() => { try { return decodeURIComponent(rawCategory); } catch { return rawCategory; } })()
+    : undefined;
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
   const [submittedSearch, setSubmittedSearch] = useState('');
@@ -48,8 +51,8 @@ export default function ProductListScreen() {
   const products = data?.pages.flatMap((page) => page.data) || [];
   const hasSearched = submittedSearch.length > 0;
   const hasCategory = !!category;
-  const shouldShowList = hasSearched || hasCategory;
-  const noResults = shouldShowList && !isLoading && !isError && products.length === 0;
+  const showRecentHeader = !hasSearched && !hasCategory;
+  const noResults = !isLoading && !isError && products.length === 0;
 
   const handleSubmitSearch = useCallback(() => {
     const trimmed = search.trim();
@@ -113,11 +116,6 @@ export default function ProductListScreen() {
         </View>
       )}
 
-      {/* Show recent searches when bar is empty and no search/category active */}
-      {!shouldShowList && !isLoading && (
-        <RecentSearchesList onSelect={handleSelectRecent} />
-      )}
-
       {isLoading ? (
         <View style={styles.skeletonGrid}>
           <ProductGridSkeleton count={6} />
@@ -126,7 +124,7 @@ export default function ProductListScreen() {
         <ErrorRetry onRetry={refetch} />
       ) : noResults ? (
         <NoResultsEmptyState query={submittedSearch || category || ''} suggestions={topSellersData?.data} />
-      ) : shouldShowList ? (
+      ) : (
         <FlatList
           data={products}
           renderItem={renderProduct}
@@ -135,6 +133,9 @@ export default function ProductListScreen() {
           columnWrapperStyle={styles.row}
           onEndReached={() => { if (hasNextPage) fetchNextPage(); }}
           onEndReachedThreshold={0.5}
+          ListHeaderComponent={
+            showRecentHeader ? <RecentSearchesList onSelect={handleSelectRecent} /> : null
+          }
           ListFooterComponent={
             isFetchingNextPage ? <ActivityIndicator style={{ marginVertical: 16 }} color={COLORS.primary} /> : null
           }
@@ -147,7 +148,7 @@ export default function ProductListScreen() {
           windowSize={7}
           removeClippedSubviews
         />
-      ) : null}
+      )}
     </View>
   );
 }
