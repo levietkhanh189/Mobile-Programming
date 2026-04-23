@@ -18,6 +18,7 @@ const normalizePrice = (price: number): number => {
   return price / 5000000;
 };
 
+
 export const computeProductRankingScore = (product: ProductRankingInput): number => {
   const soldWeight = 0.35;
   const discountWeight = 0.25;
