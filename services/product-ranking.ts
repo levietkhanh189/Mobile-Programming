@@ -12,7 +12,6 @@ export interface RankedProduct extends ProductRankingInput {
 const clamp = (value: number, min: number, max: number): number => {
   return Math.min(max, Math.max(min, value));
 };
-
 const normalizePrice = (price: number): number => {
   if (price <= 0) return 0;
   if (price >= 5000000) return 1;
