@@ -1,165 +1,106 @@
-# Mobile Programming - Authentication App
+# Bookly Mobile (Mobile-Programming-Frontend)
 
-Ứng dụng React Native với đầy đủ tính năng authentication: Register (có/không OTP), Login (với JWT), Forgot Password (có OTP).
+React Native (Expo) e-commerce app for the Bookly shop. Browse products, manage wishlist, checkout via SePay (VietQR) or COD, receive live order status updates via Socket.IO, and manage profile/addresses.
 
-## 🚀 Quick Start
+Repo: `https://github.com/levietkhanh189/Mobile-Programming`
+Backend: `https://backend-production-9c18.up.railway.app/api`
 
-### 1. Chạy Backend API
+## Tech Stack
+
+- **Expo SDK 54** · React Native 0.81 · React 19
+- **Expo Router 6** (file-based routing) with bottom tabs
+- **NativeWind 4** (Tailwind for RN) + **React Native Paper** (Material Design 3)
+- **Zustand** (persisted stores) + **TanStack React Query**
+- **Axios** with JWT interceptor
+- **Socket.IO client** for realtime order updates
+- **AsyncStorage** for token + user persistence
+- **Expo Google Fonts** (Poppins, Open Sans)
+
+## Features
+
+- Auth: login, register (OTP), forgot password (OTP), change password
+- Profile: edit info, change email/phone with OTP verification, manage addresses
+- Catalog: product list, categories, top sellers, discounts, related products, search
+- Product detail with reviews + related items
+- Cart (persisted) + wishlist
+- Checkout with shipping address selection, coupon code, COD or SePay (VietQR)
+- Order history + live status updates via Socket.IO
+- Notifications center
+- Light/dark theme with custom glassmorphism styling
+
+## Quick Start
+
 ```bash
-cd ../Mobile-Programming-Backend
 npm install
-npm run dev
+npm start                  # Expo dev server
 ```
-Server: `http://localhost:3000`
 
-### 2. Chạy Mobile App
+Then scan the QR with Expo Go, or:
+
 ```bash
-npm install
-npm start
+npm run android            # run on Android
+npm run ios                # run on iOS (macOS only)
+npm run web                # run in browser
+npm run lint
 ```
 
-## 📱 Tính năng chính
+### Point the app at a backend
 
-### ✅ Đăng ký đơn giản (Register Simple - No OTP)
-- Đăng ký nhanh chóng, không cần xác thực
-- Phù hợp cho testing và development
-- Route: `/register-simple`
-- API: `POST /api/auth/register-simple`
+Edit `services/api.ts` line 6:
 
-### 🔐 Đăng ký với OTP (Register with OTP)
-- Bảo mật cao với xác thực OTP qua email
-- OTP hiệu lực 5 phút
-- Route: `/register`
-- API:
-  - `POST /api/auth/send-otp`
-  - `POST /api/auth/verify-otp`
-  - `POST /api/auth/register`
+```ts
+// Production (default)
+const API_BASE_URL = 'https://backend-production-9c18.up.railway.app/api';
 
-### 🔑 Đăng nhập (Login with JWT)
-- Sử dụng JWT authentication
-- Token tự động gửi trong headers
-- Lưu user info và token trong AsyncStorage
-- Route: `/login`
-- API: `POST /api/auth/login`
-
-### 🔄 Quên mật khẩu (Forgot Password with OTP)
-- Xác thực OTP trước khi đổi mật khẩu
-- Route: `/forgot-password`
-- API:
-  - `POST /api/auth/send-otp`
-  - `POST /api/auth/verify-otp`
-  - `POST /api/auth/reset-password`
-
-## 🛠️ Tech Stack
-
-### Backend
-- TypeScript + Node.js
-- Express.js
-- JWT Authentication
-- bcrypt password hashing
-- OTP verification with rate limiting
-- In-memory storage
-
-### Frontend
-- React Native (Expo)
-- React Native Paper (Material Design 3)
-- Expo Router (File-based routing)
-- AsyncStorage (persistent storage)
-- Axios (API client)
-- TypeScript
-
-## 📖 Chi tiết
-
-Xem file `AUTHENTICATION_GUIDE.md` để biết:
-- Hướng dẫn cài đặt chi tiết
-- API documentation đầy đủ
-- Test flow từng tính năng
-- Troubleshooting
-
-## 🎯 Test nhanh
-
-### Đăng ký đơn giản
-1. Mở app → Login → "Đăng ký đơn giản"
-2. Nhập thông tin → "Đăng ký"
-3. ✅ Done!
-
-### Đăng ký với OTP
-1. Mở app → Login → "Đăng ký với OTP"
-2. Nhập thông tin → "Gửi mã OTP"
-3. **Xem OTP trong console backend**
-4. Nhập OTP → Tự động đăng ký
-5. ✅ Done!
-
-### Login
-1. Nhập email/password
-2. "Đăng nhập"
-3. ✅ Done!
-
-## ⚠️ Lưu ý
-
-- **OTP**: Hiển thị trong console backend (chưa tích hợp email thật)
-- **JWT**: Sử dụng JWT với expiry 7 ngày
-- **Password**: Đã hash bằng bcryptjs
-- **Storage**: In-memory (production nên dùng database)
-- **Rate Limiting**: 3 OTP requests mỗi 15 phút
-- **API URL**: Khi chạy trên thiết bị thật, đổi `localhost` thành IP máy tính trong `services/api.ts`
-- **Backend**: TypeScript backend nằm ở `../Mobile-Programming-Backend/`
-
-## 📂 Cấu trúc dự án
-
-```
-Mobile-Programming/
-├── app/                        # Routes (Expo Router)
-│   ├── login.tsx
-│   ├── register.tsx            # Với OTP
-│   ├── register-simple.tsx     # Không OTP
-│   ├── forgot-password.tsx
-│   └── home.tsx
-│
-├── screens/auth/               # Screen components
-│   ├── LoginScreen.tsx
-│   ├── RegisterScreen.tsx
-│   ├── RegisterSimpleScreen.tsx
-│   └── ForgotPasswordScreen.tsx
-│
-├── services/                   # API & Storage
-│   ├── api.ts
-│   └── storage.ts
-│
-└── components/auth/            # Components
-    └── OTPInput.tsx
-
-../Mobile-Programming-Backend/  # TypeScript Backend (separate repo)
-├── src/
-│   ├── config/                 # Environment & constants
-│   ├── types/                  # TypeScript types
-│   ├── storage/                # In-memory storage
-│   ├── services/               # Business logic
-│   ├── middleware/             # Express middleware
-│   ├── controllers/            # Route handlers
-│   ├── routes/                 # API routes
-│   ├── utils/                  # Utilities
-│   ├── app.ts                  # Express app
-│   └── server.ts               # Entry point
-├── tsconfig.json
-├── package.json
-└── README.md
+// Local dev — use your machine IP for physical devices
+// const API_BASE_URL = 'http://192.168.1.100:3000/api';
 ```
 
-## 🌟 Highlights
+### Android APK builds
 
-✅ 2 cách đăng ký: Đơn giản (nhanh) và OTP (bảo mật)
-✅ Login với JWT authentication
-✅ OTP cho Register và Forgot Password
-✅ TypeScript backend với full type safety
-✅ Password hashing với bcrypt
-✅ Rate limiting cho OTP requests
-✅ UI đẹp với Material Design 3
-✅ TypeScript
-✅ Validation đầy đủ
-✅ Error handling tốt
-✅ Responsive design
+```bash
+npm run build:apk          # release APK via scripts/build-apk.sh
+npm run build:apk:debug
+```
 
----
+## Project Structure
 
-**Chúc bạn code vui vẻ!** 🎉
+```
+app/                         # Expo Router routes
+├── (tabs)/                  # Bottom tab screens: home, explore, cart, orders
+├── _layout.tsx              # Providers: QueryClient → Theme → Paper → Stack
+├── login.tsx, register.tsx, forgot-password.tsx
+├── product/[id].tsx         # Product detail
+├── order/[id].tsx           # Order detail
+├── payment/                 # SePay QR flow
+├── checkout.tsx, profile.tsx, wishlist.tsx, notifications.tsx
+screens/                     # Screen components (thin routes → fat screens)
+├── auth/, checkout/, order/, payment/, product/, profile/, notifications/, wishlist/
+services/
+├── api.ts                   # Axios instance + JWT interceptor + service modules
+├── socket.ts                # Socket.IO client
+├── storage.ts               # AsyncStorage wrapper
+├── order-analytics.ts, product-ranking.ts
+stores/                      # Zustand (persisted)
+├── authStore.ts, cartStore.ts, notificationStore.ts,
+├── preferencesStore.ts, searchHistoryStore.ts
+components/                  # Shared UI
+hooks/                       # Custom hooks (theme, etc.)
+```
+
+## Conventions
+
+- Route files in `app/` stay thin — UI lives in `screens/`
+- Use `storageService` wrapper — never call AsyncStorage directly
+- Use the service modules from `services/api.ts` — never call axios directly
+- Layout/spacing via NativeWind `className`; interactive UI via Paper components
+- Keep files under ~200 lines; split into focused modules
+
+## Related Projects
+
+- Backend API → `../Mobile-Programming-Backend`
+- Admin dashboard → `../Mobile-Programming-Admin`
+
+## License
+
+Private / coursework.
